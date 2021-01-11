@@ -1,5 +1,6 @@
 package leancher.android
 
+import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -14,11 +15,16 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.AmbientAnimationClock
 import androidx.compose.ui.platform.setContent
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import leancher.android.ui.components.Pager
+import leancher.android.ui.components.PagerState
+import leancher.android.ui.pages.Feed
+import leancher.android.ui.pages.Home
+import leancher.android.ui.pages.NotificationCenter
+import leancher.android.ui.theme.White
 import java.util.*
 
 
@@ -31,6 +37,9 @@ class MainActivity : AppCompatActivity() {
             PagerTest()
             // IntentButton("Stackoverflow")
         }
+
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notifications = notificationManager?.activeNotifications
 
         /* val pm = getPackageManager()
         val main = Intent(Intent.ACTION_MAIN, null)
@@ -77,6 +86,7 @@ class MainActivity : AppCompatActivity() {
             val clock = AmbientAnimationClock.current
             remember(clock) { PagerState(clock) }
         }
+
         pagerState.maxPage = (2).coerceAtLeast(0)
 
         val modifier = Modifier.fillMaxSize()
@@ -85,7 +95,12 @@ class MainActivity : AppCompatActivity() {
             Column(
                 modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                Text(text = "Page $page", color = Color.White)
+                when(page) {
+                    0 -> Feed(page)
+                    1 -> Home(page)
+                    2 -> NotificationCenter(page)
+                    else -> Home(page)
+                }
             }
         }
     }
