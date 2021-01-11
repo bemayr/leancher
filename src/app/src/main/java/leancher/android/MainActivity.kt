@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         // setContentView(R.layout.activity_main)
 
         setContent {
-            Greeting("Android")
+            IntentButton("Stackoverflow")
         }
 
         /* val pm = getPackageManager()
@@ -56,14 +57,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun Greeting(name: String) {
-        Text (text = "Hello $name!", color = Color.White)
+    fun IntentButton(name: String) {
+        Button(onClick = {
+            launchIntent()
+        }) {
+            Text(text = "Launch $name!")
+        }
     }
 
     @Preview
     @Composable
-    fun PreviewGreeting() {
-        Greeting("Android")
+    fun PreviewIntent() {
+        IntentButton("Stackoverflow")
     }
 
 }
