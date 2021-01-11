@@ -85,9 +85,7 @@ class MainActivity : AppCompatActivity() {
             Column(
                 modifier.padding(horizontal = 12.dp, vertical = 8.dp)
             ) {
-                (1..3).map {
-                    Text(text = "Test $it", color = Color.White)
-                }
+                Text(text = "Page $page", color = Color.White)
             }
         }
     }
