@@ -45,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//         setContentView(R.layout.activity_main)
+//        setContentView(R.layout.activity_main)
         setContent {
             PagerTest()
         }
@@ -164,6 +164,7 @@ class MainActivity : AppCompatActivity() {
         val hostView = mAppWidgetHost.createView(this, appWidgetId, appWidgetInfo)
         hostView.setAppWidget(appWidgetId, appWidgetInfo)
         feedState.widgets.add(Widget(appWidgetId, appWidgetInfo))
+        feedState.hostViews.add(hostView)
 //        mainlayout.addView(hostView)
     }
 
