@@ -27,3 +27,4 @@
 - edit a \<Photo\>
 - tweet something
 - Play a \<Song\> | Play \<Music\> (https://community.spotify.com/t5/Android/How-to-launch-an-Android-Intent-to-search-for-and-play-a-song-on/td-p/4898125)
+- Check whether \<Somebody\> texted me
