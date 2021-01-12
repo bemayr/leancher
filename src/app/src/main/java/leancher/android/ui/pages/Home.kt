@@ -14,13 +14,13 @@ import leancher.android.ui.components.TitleCard
 import leancher.android.ui.theme.StandardText
 import leancher.android.ui.theme.White
 
-var titleModel = PageTitle("Home", "A human centered launcher experience", R.drawable.cool)
+var homeTitleModel = PageTitle("Home", "A human centered launcher experience", R.drawable.cool)
 
 @Composable
 fun Home(page: Int, launchIntent: () -> Unit) {
     Row {
         Column(Modifier.padding(20.dp)) {
-            TitleCard(pageTitle = titleModel)
+            TitleCard(pageTitle = homeTitleModel)
             Text("TODO:", style = StandardText())
             Text("I wanna ... ", style = StandardText())
             Text("... start an <app>", style = StandardText())
