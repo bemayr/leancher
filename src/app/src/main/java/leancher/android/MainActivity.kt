@@ -22,7 +22,6 @@ import leancher.android.ui.pages.NotificationCenter
 
 
 class MainActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -36,14 +35,12 @@ class MainActivity : AppCompatActivity() {
     @Composable
     fun PagerTest() {
         val clock = AmbientAnimationClock.current
-        val pagerState = remember(clock) { PagerState(clock) }
+        val pagerState = remember(clock) { PagerState(clock, 1, 0, 2) }
 
         run {
             val clock = AmbientAnimationClock.current
-            remember(clock) { PagerState(clock) }
+            remember(clock) { PagerState(clock, 1, 0, 2) }
         }
-
-        pagerState.maxPage = (2).coerceAtLeast(0)
 
         val modifier = Modifier.fillMaxSize()
 
