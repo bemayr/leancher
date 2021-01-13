@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
         tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.BIND_APPWIDGET" />
 
     <application
         android:allowBackup="true"
@@ -13,6 +14,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:noHistory="true"
         android:theme="@style/Theme.Leancher">
         <activity android:name=".MainActivity">
             <intent-filter>

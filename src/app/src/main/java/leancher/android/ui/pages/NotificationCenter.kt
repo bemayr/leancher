@@ -19,6 +19,8 @@ import leancher.android.ui.components.TestButton
 import leancher.android.ui.components.TitleCard
 
 var notificationTitleModel = PageTitle("Notification Center", "Manage your notifications here", R.drawable.notification)
+import leancher.android.ui.components.ActionButton
+import leancher.android.ui.theme.White
 
 @Composable
 fun NotificationCenter(page: Int) {
@@ -41,6 +43,12 @@ fun NotificationCenter(page: Int) {
 //        val myNotificationService: NotificationService? = context.getSystemService(NotificationService::class.java)
 
         val notifications = NotificationService().getActiveNotifications()
+    
+    Text(text = "NotificationCenter, Page: $page", color = White())
+    ActionButton(text = "Print Notification", action = {
+        
+        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notifications = notificationManager.activeNotifications
 
         println("notifications length ${notifications?.size}")
         notifications?.forEach { n -> println(n.notification) }
