@@ -9,11 +9,10 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientAnimationClock
 import androidx.compose.ui.platform.setContent
@@ -71,27 +70,32 @@ class MainActivity : AppCompatActivity() {
     @Composable
     fun PagerTest() {
         val clock = AmbientAnimationClock.current
-        val pagerState = remember(clock) { PagerState(clock) }
+        val pagerState = remember(clock) { PagerState(clock, 1, 0, 2) }
+        val currentPage = pagerState.currentPage
 
         run {
             val clock = AmbientAnimationClock.current
-            remember(clock) { PagerState(clock) }
+            remember(clock) { PagerState(clock, 1, 0, 2) }
         }
 
-        pagerState.maxPage = (2).coerceAtLeast(0)
-
-        val modifier = Modifier.fillMaxSize()
-
         Pager(state = pagerState) {
-            Column(
-                    modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-            ) {
-                when(page) {
-                    0 -> Feed(page, feedState = feedState)
-                    1 -> Home(page, launchIntent = { launchIntent() })
-                    2 -> NotificationCenter(page)
-                    else -> Home(page, launchIntent = { launchIntent() })
+            Row(Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 12.dp, vertical = 8.dp)) {
+                Column() {
+                    when(page) {
+                        0 -> Feed(page)
+                        1 -> Home(page, launchIntent = { launchIntent() })
+                        2 -> NotificationCenter(page)
+                        else -> Home(page, launchIntent = { launchIntent() })
+                    }
                 }
+            }
+        }
+        Row(Modifier
+                .fillMaxSize(), verticalAlignment = Alignment.Bottom) {
+            Column() {
+                Paginator(pageAmount = 3, currentPage = currentPage)
             }
         }
     }
