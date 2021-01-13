@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.os.Parcelable
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
@@ -20,12 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import leancher.android.ui.components.Pager
 import leancher.android.ui.components.PagerState
+import leancher.android.ui.components.Paginator
 import leancher.android.ui.core.FeedState
 import leancher.android.ui.core.Widget
 import leancher.android.ui.pages.Feed
 import leancher.android.ui.pages.Home
 import leancher.android.ui.pages.NotificationCenter
-import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -36,39 +35,40 @@ class MainActivity : AppCompatActivity() {
 
     private var feedState: FeedState = FeedState()
 
-    private lateinit var mAppWidgetManager: AppWidgetManager
-    private lateinit var mAppWidgetHost: AppWidgetHost
+    private lateinit var appWidgetManager: AppWidgetManager
+    private lateinit var appWidgetHost: AppWidgetHost
 
     private lateinit var mainlayout: ViewGroup
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-//        setContentView(R.layout.activity_main)
+        // set default view with android view layout
+        // setContentView(R.layout.activity_main)
+
+        // set default view with compose => Pager
         setContent {
-            PagerTest()
+            PagerLayout()
         }
 
-        mAppWidgetManager = AppWidgetManager.getInstance(this)
-        mAppWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
-
-//        mainlayout = findViewById(R.id.main_layout);
+        appWidgetManager = AppWidgetManager.getInstance(this)
+        appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
 
         selectWidget()
     }
 
     override fun onStart() {
         super.onStart()
-        mAppWidgetHost.startListening()
+        appWidgetHost.startListening()
     }
 
     override fun onStop() {
         super.onStop()
-        mAppWidgetHost.stopListening()
+        appWidgetHost.stopListening()
     }
 
     @Composable
-    fun PagerTest() {
+    fun PagerLayout() {
         val clock = AmbientAnimationClock.current
         val pagerState = remember(clock) { PagerState(clock, 1, 0, 2) }
         val currentPage = pagerState.currentPage
@@ -84,10 +84,10 @@ class MainActivity : AppCompatActivity() {
                     .padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Column() {
                     when(page) {
-                        0 -> Feed(page)
-                        1 -> Home(page, launchIntent = { launchIntent() })
+                        0 -> Feed(page, feedState)
+                        1 -> Home(page, launchIntent = { launchIntentTest() })
                         2 -> NotificationCenter(page)
-                        else -> Home(page, launchIntent = { launchIntent() })
+                        else -> Home(page, launchIntent = { launchIntentTest() })
                     }
                 }
             }
@@ -103,10 +103,10 @@ class MainActivity : AppCompatActivity() {
     @Preview
     @Composable
     fun PreviewIntent() {
-        PagerTest()
+        PagerLayout()
     }
 
-    private fun launchIntent() {
+    private fun launchIntentTest() {
         val uriString = "https://stackoverflow.com/"
         val intent = Intent(Intent.ACTION_VIEW)
         intent.data = Uri.parse(uriString)
@@ -114,18 +114,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun selectWidget() {
-        val appWidgetId = mAppWidgetHost.allocateAppWidgetId()
+        val appWidgetId = appWidgetHost.allocateAppWidgetId()
         val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK)
         pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-//        addEmptyData(pickIntent)
         startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET)
-    }
-
-    fun addEmptyData(pickIntent: Intent) {
-        val customInfo: ArrayList<out Parcelable> = ArrayList<Parcelable>()
-        pickIntent.putParcelableArrayListExtra(AppWidgetManager.EXTRA_CUSTOM_INFO, customInfo)
-        val customExtras: ArrayList<out Parcelable> = ArrayList<Parcelable>()
-        pickIntent.putParcelableArrayListExtra(AppWidgetManager.EXTRA_CUSTOM_EXTRAS, customExtras)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -142,7 +134,7 @@ class MainActivity : AppCompatActivity() {
         } else if (resultCode == RESULT_CANCELED && data != null) {
             val appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
             if (appWidgetId != -1) {
-                mAppWidgetHost.deleteAppWidgetId(appWidgetId)
+                appWidgetHost.deleteAppWidgetId(appWidgetId)
             }
         }
     }
@@ -150,7 +142,7 @@ class MainActivity : AppCompatActivity() {
     private fun configureWidget(data: Intent?) {
         val extras = data!!.extras
         val appWidgetId = extras!!.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-        val appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId)
+        val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
         if (appWidgetInfo.configure != null) {
             val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE)
             intent.component = appWidgetInfo.configure
@@ -164,16 +156,16 @@ class MainActivity : AppCompatActivity() {
     fun createWidget(data: Intent) {
         val extras = data.extras
         val appWidgetId = extras!!.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-        val appWidgetInfo = mAppWidgetManager.getAppWidgetInfo(appWidgetId)
-        val hostView = mAppWidgetHost.createView(this, appWidgetId, appWidgetInfo)
+        val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
+        val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
         hostView.setAppWidget(appWidgetId, appWidgetInfo)
         feedState.widgets.add(Widget(appWidgetId, appWidgetInfo))
         feedState.hostViews.add(hostView)
-//        mainlayout.addView(hostView)
+        // mainlayout.addView(hostView)
     }
 
     fun removeWidget(hostView: AppWidgetHostView) {
-        mAppWidgetHost.deleteAppWidgetId(hostView.appWidgetId)
+        appWidgetHost.deleteAppWidgetId(hostView.appWidgetId)
         mainlayout.removeView(hostView)
     }
 
