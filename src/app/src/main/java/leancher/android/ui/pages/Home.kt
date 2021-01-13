@@ -19,7 +19,7 @@ var homeTitleModel = PageTitle("Home", "A human centered launcher experience", R
 fun Home(page: Int, launchIntent: () -> Unit) {
     Row {
         Column(Modifier.padding(20.dp)) {
-            TitleCard(pageTitle = titleModel, null)
+            TitleCard(pageTitle = homeTitleModel, null)
             Text("TODO:", style = StandardText())
             Text("I wanna ... ", style = StandardText())
             Text("... start an <app>", style = StandardText())

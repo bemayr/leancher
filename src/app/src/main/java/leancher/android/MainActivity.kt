@@ -12,12 +12,10 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.View
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -82,6 +80,9 @@ class MainActivity : AppCompatActivity() {
         setContent {
             PagerLayout()
         }
+
+        appWidgetManager = AppWidgetManager.getInstance(this)
+        appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
     }
 
     fun showNotifications() {
@@ -117,8 +118,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
-        appWidgetManager = AppWidgetManager.getInstance(this)
-        appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
     }
 
     override fun onStart() {

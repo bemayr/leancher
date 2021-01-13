@@ -1,6 +1,5 @@
 package leancher.android.ui.core
 
-import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetProviderInfo
 
 class Widget (id: Int, providerInfo: AppWidgetProviderInfo) {
