@@ -8,7 +8,7 @@ class Widget (id: Int, providerInfo: AppWidgetProviderInfo) {
     val providerInfo: AppWidgetProviderInfo = providerInfo
 }
 
-class FeedState {
+class FeedState(selectWidgetFun: () -> Unit) {
+    val selectWidgetFun: () -> Unit = selectWidgetFun
     val widgets: MutableList<Widget> = mutableListOf()
-    var hostViews: MutableList<AppWidgetHostView> = mutableListOf()
 }

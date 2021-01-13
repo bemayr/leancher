@@ -33,7 +33,7 @@ class MainActivity : AppCompatActivity() {
     private val REQUEST_CREATE_APPWIDGET = 5
     private val REQUEST_PICK_APPWIDGET = 9
 
-    private var feedState: FeedState = FeedState()
+    private var feedState: FeedState = FeedState(selectWidgetFun = { selectWidget() })
 
     private lateinit var appWidgetManager: AppWidgetManager
     private lateinit var appWidgetHost: AppWidgetHost
@@ -53,8 +53,6 @@ class MainActivity : AppCompatActivity() {
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
-
-        selectWidget()
     }
 
     override fun onStart() {
@@ -160,7 +158,7 @@ class MainActivity : AppCompatActivity() {
         val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
         hostView.setAppWidget(appWidgetId, appWidgetInfo)
         feedState.widgets.add(Widget(appWidgetId, appWidgetInfo))
-        feedState.hostViews.add(hostView)
+
         // mainlayout.addView(hostView)
     }
 
