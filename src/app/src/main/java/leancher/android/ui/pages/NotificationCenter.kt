@@ -47,7 +47,7 @@ fun NotificationCenter(page: Int) {
     }
 
     Row {
-        IconButton(icon = Icons.Filled.Delete, action = { println(" ==== DELETE ====") })
+        ActionDialogDemo()
     }
 
     Row {
@@ -55,7 +55,7 @@ fun NotificationCenter(page: Int) {
     }
     
     Row {
-       NotificationList(notifications = fakeNotifications) 
+       NotificationList(notifications = fakeNotifications)
     }
 
     // ActionButton(text = "Print Notification", action = {

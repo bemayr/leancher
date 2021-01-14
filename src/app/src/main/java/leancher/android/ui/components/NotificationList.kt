@@ -1,7 +1,6 @@
 package leancher.android.ui.components
 
 import androidx.compose.foundation.ScrollableColumn
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Divider
