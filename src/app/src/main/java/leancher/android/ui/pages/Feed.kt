@@ -8,6 +8,7 @@ import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.platform.ContextAmbient
 import androidx.compose.ui.viewinterop.AndroidView
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
@@ -15,10 +16,13 @@ import leancher.android.ui.components.ActionButton
 import leancher.android.ui.components.TitleCard
 import leancher.android.ui.states.FeedState
 
-var feedTitleModel = PageTitle("Feed", "Your widget feed", R.drawable.cool)
+lateinit var feedTitleModel: PageTitle
 
 @Composable
 fun Feed(page: Int, feedState: FeedState) {
+    val context = ContextAmbient.current
+
+    feedTitleModel = PageTitle(context.getString(R.string.page_widget_feed), "Your widget feed", R.drawable.cool)
 
     Row { TitleCard(pageTitle = feedTitleModel) { ActionButton(text = "Add Widget", action = feedState.selectWidgetFun) } }
 //    Row(Modifier.fillMaxWidth().padding(vertical = 10.dp), horizontalArrangement = Arrangement.Center) { ActionButton(text = "Add Widget", action = feedState.selectWidgetFun) }

@@ -17,14 +17,17 @@ import leancher.android.ui.components.ActionSwitch
 import leancher.android.ui.components.IconButton
 import leancher.android.ui.components.TitleCard
 import leancher.android.ui.theme.White
-import leancher.android.ui.util.Toast
 
-var notificationTitleModel = PageTitle("Notification Center", "Manage your notifications here", R.drawable.notification)
+lateinit var notificationTitleModel: PageTitle
 
 @Composable
 fun NotificationCenter(page: Int) {
-
     val context = ContextAmbient.current
+
+    notificationTitleModel = PageTitle(
+            context.getString(leancher.android.R.string.page_notification_center),
+            "Manage your notifications here",
+            R.drawable.notification)
 
     val fakeNotifications = listOf<String>("1", "2", "3", "4", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5")
 
@@ -53,7 +56,6 @@ fun NotificationCenter(page: Int) {
         // val notifications = NotificationService().getActiveNotifications()
     // }
 
-    Text(text = "NotificationCenter, Page: $page", color = White())
     ActionButton(text = "Print Notification", action = {
         
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

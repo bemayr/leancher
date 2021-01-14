@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Leancher</string>
+    <string name="page_home" translatable="false">Home</string>
+    <string name="page_widget_feed" translatable="false">Widget Feed</string>
+    <string name="page_notification_center">Nachrichten Center</string>
+</resources>
