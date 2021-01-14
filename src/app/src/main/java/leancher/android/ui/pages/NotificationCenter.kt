@@ -14,6 +14,7 @@ import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.ActionButton
 import leancher.android.ui.components.ActionSwitch
+import leancher.android.ui.components.IconButton
 import leancher.android.ui.components.TitleCard
 import leancher.android.ui.theme.White
 import leancher.android.ui.util.Toast
@@ -40,6 +41,10 @@ fun NotificationCenter(page: Int) {
                     onAction = { println(" ============= ON ============= ") },
                     offAction = { println(" ============= OFF ============= ") })
         }
+    }
+
+    Row {
+        IconButton(icon = R.drawable.notification, action = { println(" ==== DELETE ====") })
     }
 
     // ActionButton(text = "Print Notification", action = {

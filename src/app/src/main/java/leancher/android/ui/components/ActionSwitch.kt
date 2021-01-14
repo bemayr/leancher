@@ -13,7 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun ActionSwitch(text: String, onAction: () -> Unit?, offAction: () -> Unit?) {
+fun ActionSwitch(text: String, onAction: () -> Unit, offAction: () -> Unit) {
     val checkedState = remember { mutableStateOf(false) }
     Row(Modifier.wrapContentSize(Alignment.Center)) {
         Column {
