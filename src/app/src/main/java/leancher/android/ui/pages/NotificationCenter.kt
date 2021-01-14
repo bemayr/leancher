@@ -15,10 +15,7 @@ import androidx.compose.ui.platform.ContextAmbient
 import androidx.compose.ui.unit.dp
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
-import leancher.android.ui.components.ActionButton
-import leancher.android.ui.components.ActionSwitch
-import leancher.android.ui.components.IconButton
-import leancher.android.ui.components.TitleCard
+import leancher.android.ui.components.*
 import leancher.android.ui.theme.White
 
 lateinit var notificationTitleModel: PageTitle
@@ -55,6 +52,10 @@ fun NotificationCenter(page: Int) {
 
     Row {
         IconButton(icon = Icons.Filled.Delete, action = { println(" ==== DELETE ====") }, "Delete all")
+    }
+    
+    Row {
+       NotificationList(notifications = fakeNotifications) 
     }
 
     // ActionButton(text = "Print Notification", action = {
