@@ -63,3 +63,12 @@ fun NotificationCenter(page: Int) {
         notifications?.forEach { n -> println(n.notification) }
     })
 }
+
+fun hideStatusBar() {
+    // Hide the status bar.
+    // window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+
+    // Remember that you should never show the action bar if the
+    // status bar is hidden, so hide that too if necessary.
+    // actionBar?.hide()
+}

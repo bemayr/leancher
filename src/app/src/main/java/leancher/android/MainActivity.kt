@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -37,65 +38,69 @@ import leancher.android.ui.pages.NotificationCenter
 
 
 class MainActivity : AppCompatActivity() {
-    val TAG = "MainActivity"
+    private val TAG = "MainActivity"
     private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
 
-    private val APPWIDGET_HOST_ID = 1024
-    private val REQUEST_CREATE_APPWIDGET = 5
-    private val REQUEST_PICK_APPWIDGET = 9
-
-    private var feedState: FeedState = FeedState(selectWidgetFun = { selectWidget() })
+    private val APPWIDGET_HOST_ID           = 1024
+    private val REQUEST_CREATE_APPWIDGET    = 5
+    private val REQUEST_PICK_APPWIDGET      = 9
 
     private lateinit var appWidgetManager: AppWidgetManager
     private lateinit var appWidgetHost: AppWidgetHost
 
-    private lateinit var mainlayout: ViewGroup
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var editor: SharedPreferences.Editor
+
+    private var feedState: FeedState = FeedState(selectWidgetFun = { selectWidget() })
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val res = checkSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY)
+        sharedPreferences = getSharedPreferences("com.Leancher", MODE_PRIVATE);
 
-        if (checkSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY) != PackageManager.PERMISSION_GRANTED) {
-            // Permission is not granted
-            // Ask for permision
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_NOTIFICATION_POLICY), 1);
-            // startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS))
-        }
-        else {
-            // Permission has already been granted
-        }
+        appWidgetManager = AppWidgetManager.getInstance(this)
+        appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
 
-        // Hide the status bar.
-        // window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-
-        // Remember that you should never show the action bar if the
-        // status bar is hidden, so hide that too if necessary.
-        // actionBar?.hide()
-
-        // set default view with android view layout
-        // setContentView(R.layout.activity_main)
+        requestLeancherPermissions()
 
         // set default view with compose => Pager
         setContent {
             PagerLayout()
         }
-
-        appWidgetManager = AppWidgetManager.getInstance(this)
-        appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
     }
 
-    fun showNotifications() {
-        if (isNotificationServiceEnabled()) {
-            Log.i(TAG, "Notification enabled -- trying to fetch it")
-            getNotifications()
-        } else {
-            Log.i(TAG, "Notification disabled -- Opening settings")
+    override fun onStart() {
+        super.onStart()
+        appWidgetHost.startListening()
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        if (sharedPreferences.getBoolean("firstRun", true)) {
+            editor = sharedPreferences.edit();
+            editor.putBoolean("firstRun", false)
+            editor.commit();
+
+            requestLeancherPermissions()
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        appWidgetHost.stopListening()
+    }
+
+    private fun requestLeancherPermissions() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_NOTIFICATION_POLICY), 1);
+        }
+        if (!isNotificationServiceEnabled()) {
             startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
     }
 
-    fun getNotifications() {
+    private fun getNotifications() {
         Log.i(TAG, "Waiting for MyNotificationService")
         val myNotificationService: NotificationService? = getSystemService(NotificationService::class.java)
         Log.i(TAG, "Active Notifications: [")
@@ -120,14 +125,65 @@ class MainActivity : AppCompatActivity() {
         return false
     }
 
-    override fun onStart() {
-        super.onStart()
-        appWidgetHost.startListening()
+    private fun launchIntentTest() {
+        val uriString = "https://stackoverflow.com/"
+        val intent = Intent(Intent.ACTION_VIEW)
+        intent.data = Uri.parse(uriString)
+        startActivity(intent)
     }
 
-    override fun onStop() {
-        super.onStop()
-        appWidgetHost.stopListening()
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_PICK_APPWIDGET) {
+                configureWidget(data)
+            } else if (requestCode == REQUEST_CREATE_APPWIDGET) {
+                if (data != null) {
+                    createWidget(data)
+                }
+            }
+        } else if (resultCode == RESULT_CANCELED && data != null) {
+            val appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
+            if (appWidgetId != -1) {
+                appWidgetHost.deleteAppWidgetId(appWidgetId)
+            }
+        }
+    }
+
+    private fun selectWidget() {
+        val appWidgetId = appWidgetHost.allocateAppWidgetId()
+        val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK)
+        pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET)
+    }
+
+    private fun configureWidget(data: Intent?) {
+        val extras = data!!.extras
+        val appWidgetId = extras!!.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
+        val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
+        if (appWidgetInfo.configure != null) {
+            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE)
+            intent.component = appWidgetInfo.configure
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+            startActivityForResult(intent, REQUEST_CREATE_APPWIDGET)
+        } else {
+            createWidget(data)
+        }
+    }
+
+    private fun createWidget(data: Intent) {
+        val extras = data.extras
+        val appWidgetId = extras!!.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
+        val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
+        // val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
+        // hostView.setAppWidget(appWidgetId, appWidgetInfo)
+
+        feedState.widgets.add(Widget(appWidgetId, appWidgetInfo))
+    }
+
+    private fun removeWidget(widget: Widget) {
+        feedState.widgets.remove(widget)
     }
 
     @Composable
@@ -167,69 +223,6 @@ class MainActivity : AppCompatActivity() {
     @Composable
     fun PreviewIntent() {
         PagerLayout()
-    }
-
-    private fun launchIntentTest() {
-        val uriString = "https://stackoverflow.com/"
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.data = Uri.parse(uriString)
-        startActivity(intent)
-    }
-
-    fun selectWidget() {
-        val appWidgetId = appWidgetHost.allocateAppWidgetId()
-        val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK)
-        pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET)
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (resultCode == RESULT_OK) {
-            if (requestCode == REQUEST_PICK_APPWIDGET) {
-                configureWidget(data)
-            } else if (requestCode == REQUEST_CREATE_APPWIDGET) {
-                if (data != null) {
-                    createWidget(data)
-                }
-            }
-        } else if (resultCode == RESULT_CANCELED && data != null) {
-            val appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-            if (appWidgetId != -1) {
-                appWidgetHost.deleteAppWidgetId(appWidgetId)
-            }
-        }
-    }
-
-    private fun configureWidget(data: Intent?) {
-        val extras = data!!.extras
-        val appWidgetId = extras!!.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-        val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
-        if (appWidgetInfo.configure != null) {
-            val intent = Intent(AppWidgetManager.ACTION_APPWIDGET_CONFIGURE)
-            intent.component = appWidgetInfo.configure
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-            startActivityForResult(intent, REQUEST_CREATE_APPWIDGET)
-        } else {
-            createWidget(data)
-        }
-    }
-
-    fun createWidget(data: Intent) {
-        val extras = data.extras
-        val appWidgetId = extras!!.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
-        val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
-        val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
-        hostView.setAppWidget(appWidgetId, appWidgetInfo)
-        feedState.widgets.add(Widget(appWidgetId, appWidgetInfo))
-
-        // mainlayout.addView(hostView)
-    }
-
-    fun removeWidget(hostView: AppWidgetHostView) {
-        appWidgetHost.deleteAppWidgetId(hostView.appWidgetId)
-        mainlayout.removeView(hostView)
     }
 
 }
