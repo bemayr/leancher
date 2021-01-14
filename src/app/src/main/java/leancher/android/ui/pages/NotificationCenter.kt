@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ContextAmbient
@@ -40,14 +43,18 @@ fun NotificationCenter(page: Int) {
     Row {
         Column(Modifier.padding(10.dp)) {
             ActionSwitch(
-                    text = "Enable / Disable Notifications",
                     onAction = { println(" ============= ON ============= ") },
-                    offAction = { println(" ============= OFF ============= ") })
+                    offAction = { println(" ============= OFF ============= ") },
+                    text = "Enable / Disable Notifications")
         }
     }
 
     Row {
-        IconButton(icon = R.drawable.notification, action = { println(" ==== DELETE ====") })
+        IconButton(icon = Icons.Filled.Delete, action = { println(" ==== DELETE ====") })
+    }
+
+    Row {
+        IconButton(icon = Icons.Filled.Delete, action = { println(" ==== DELETE ====") }, "Delete all")
     }
 
     // ActionButton(text = "Print Notification", action = {

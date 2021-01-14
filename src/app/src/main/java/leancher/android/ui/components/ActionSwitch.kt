@@ -12,11 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun ActionSwitch(text: String, onAction: () -> Unit, offAction: () -> Unit) {
+fun ActionSwitch(onAction: () -> Unit, offAction: () -> Unit, text: String? = null) {
     val checkedState = remember { mutableStateOf(false) }
-    Row(Modifier.padding(15.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(text = text)
-        Spacer(modifier = Modifier.width(15.dp))
+    Row(Modifier.padding(vertical = 15.dp), verticalAlignment = Alignment.CenterVertically) {
+        if(text != null) {
+            Text(text = text)
+            Spacer(modifier = Modifier.width(15.dp))
+        }
         Switch(checked = checkedState.value, onCheckedChange = { checked ->
             checkedState.value = checked
             if(checkedState.value) {
