@@ -4,6 +4,9 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 
+// THEME DOC:
+// https://developer.android.com/jetpack/compose/themes
+
 @Composable
 fun LeancherTheme(
         content: @Composable () -> Unit,
