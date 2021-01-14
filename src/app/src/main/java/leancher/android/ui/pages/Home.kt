@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -12,7 +13,6 @@ import androidx.compose.ui.unit.dp
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.TitleCard
-import leancher.android.ui.theme.StandardText
 
 lateinit var homeTitleModel: PageTitle
 
@@ -25,9 +25,9 @@ fun Home(page: Int, launchIntent: () -> Unit) {
     Row {
         Column(Modifier.padding(20.dp)) {
             TitleCard(pageTitle = homeTitleModel, null)
-            Text("TODO:", style = StandardText())
-            Text("I wanna ... ", style = StandardText())
-            Text("... start an <app>", style = StandardText())
+            Text("TODO:", style = MaterialTheme.typography.body1)
+            Text("I wanna ... ", style = MaterialTheme.typography.body1)
+            Text("... start an <app>", style = MaterialTheme.typography.body1)
         }
     }
     //    Text(text = "Lenacher Home, Page: $page", color = White())

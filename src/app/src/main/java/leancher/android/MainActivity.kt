@@ -30,11 +30,13 @@ import leancher.android.domain.services.NotificationService
 import leancher.android.ui.components.Pager
 import leancher.android.ui.components.PagerState
 import leancher.android.ui.components.Paginator
+import leancher.android.ui.layouts.PagerLayout
 import leancher.android.ui.states.FeedState
 import leancher.android.ui.states.Widget
 import leancher.android.ui.pages.Feed
 import leancher.android.ui.pages.Home
 import leancher.android.ui.pages.NotificationCenter
+import leancher.android.ui.theme.LeancherTheme
 
 
 class MainActivity : AppCompatActivity() {
@@ -65,7 +67,7 @@ class MainActivity : AppCompatActivity() {
 
         // set default view with compose => Pager
         setContent {
-            PagerLayout()
+            Leancher()
         }
     }
 
@@ -187,42 +189,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Composable
-    fun PagerLayout() {
-        val clock = AmbientAnimationClock.current
-        val pagerState = remember(clock) { PagerState(clock, 1, 0, 2) }
-        val currentPage = pagerState.currentPage
-
-        run {
-            val clock = AmbientAnimationClock.current
-            remember(clock) { PagerState(clock, 1, 0, 2) }
-        }
-
-        Pager(state = pagerState) {
-            Row(Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Column() {
-                    when(page) {
-                        0 -> Feed(page, feedState)
-                        1 -> Home(page, launchIntent = { launchIntentTest() })
-                        2 -> NotificationCenter(page)
-                        else -> Home(page, launchIntent = { launchIntentTest() })
-                    }
+    fun Leancher() {
+        LeancherTheme(
+                content = {
+                    PagerLayout(feedState = feedState, launchIntentTest = { launchIntentTest() })
                 }
-            }
-        }
-        Row(Modifier
-                .fillMaxSize(), verticalAlignment = Alignment.Bottom) {
-            Column() {
-                Paginator(pageAmount = 3, currentPage = currentPage)
-            }
-        }
-    }
-
-    @Preview
-    @Composable
-    fun PreviewIntent() {
-        PagerLayout()
+        )
     }
 
 }
