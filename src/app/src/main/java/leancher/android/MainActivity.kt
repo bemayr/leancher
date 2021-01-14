@@ -29,8 +29,8 @@ import leancher.android.domain.services.NotificationService
 import leancher.android.ui.components.Pager
 import leancher.android.ui.components.PagerState
 import leancher.android.ui.components.Paginator
-import leancher.android.ui.core.FeedState
-import leancher.android.ui.core.Widget
+import leancher.android.ui.states.FeedState
+import leancher.android.ui.states.Widget
 import leancher.android.ui.pages.Feed
 import leancher.android.ui.pages.Home
 import leancher.android.ui.pages.NotificationCenter

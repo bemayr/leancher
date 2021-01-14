@@ -13,8 +13,10 @@ import androidx.compose.ui.unit.dp
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.ActionButton
+import leancher.android.ui.components.ActionSwitch
 import leancher.android.ui.components.TitleCard
 import leancher.android.ui.theme.White
+import leancher.android.ui.util.Toast
 
 var notificationTitleModel = PageTitle("Notification Center", "Manage your notifications here", R.drawable.notification)
 
@@ -26,8 +28,17 @@ fun NotificationCenter(page: Int) {
     val fakeNotifications = listOf<String>("1", "2", "3", "4", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5")
 
     Row {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(10.dp)) {
             TitleCard(pageTitle = notificationTitleModel, null)
+        }
+    }
+
+    Row {
+        Column(Modifier.padding(10.dp)) {
+            ActionSwitch(
+                    text = "Enable / Disable Notifications",
+                    onAction = { println(" ============= ON ============= ") },
+                    offAction = { println(" ============= OFF ============= ") })
         }
     }
 

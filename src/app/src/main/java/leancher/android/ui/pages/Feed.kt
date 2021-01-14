@@ -13,7 +13,7 @@ import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.ActionButton
 import leancher.android.ui.components.TitleCard
-import leancher.android.ui.core.FeedState
+import leancher.android.ui.states.FeedState
 
 var feedTitleModel = PageTitle("Feed", "Your widget feed", R.drawable.cool)
 

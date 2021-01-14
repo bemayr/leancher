@@ -1,4 +1,4 @@
-package leancher.android.ui.core
+package leancher.android.ui.states
 
 import android.appwidget.AppWidgetProviderInfo
 
