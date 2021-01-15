@@ -13,14 +13,13 @@ import androidx.compose.ui.unit.dp
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.TitleCard
-
-lateinit var homeTitleModel: PageTitle
+import leancher.android.viewmodels.HomeViewModel
 
 @Composable
-fun Home(page: Int, launchIntent: () -> Unit) {
+fun Home(homeViewModel: HomeViewModel) {
     val context = ContextAmbient.current
 
-    homeTitleModel = PageTitle(context.getString(R.string.page_home), "A human centered launcher experience", R.drawable.cool)
+    val homeTitleModel = PageTitle(context.getString(R.string.page_home), "A human centered launcher experience", R.drawable.cool)
 
     Row {
         Column(Modifier.padding(20.dp)) {

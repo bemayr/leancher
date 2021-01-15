@@ -15,10 +15,13 @@ import leancher.android.ui.components.Paginator
 import leancher.android.ui.pages.Feed
 import leancher.android.ui.pages.Home
 import leancher.android.ui.pages.NotificationCenter
-import leancher.android.ui.states.FeedState
+import leancher.android.viewmodels.FeedViewModel
+import leancher.android.viewmodels.HomeViewModel
+import leancher.android.viewmodels.MainActivityViewModel
+import leancher.android.viewmodels.NotificationCenterViewModel
 
 @Composable
-fun PagerLayout(feedState: FeedState, launchIntentTest: () -> Unit) {
+fun PagerLayout(mainActivityViewModel: MainActivityViewModel) {
     val clock = AmbientAnimationClock.current
     val pagerState = remember(clock) { PagerState(clock, 1, 0, 2) }
     val currentPage = pagerState.currentPage
@@ -35,10 +38,10 @@ fun PagerLayout(feedState: FeedState, launchIntentTest: () -> Unit) {
                     .padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Column() {
                     when(page) {
-                        0 -> Feed(page, feedState)
-                        1 -> Home(page, launchIntent = { launchIntentTest() })
-                        2 -> NotificationCenter(page)
-                        else -> Home(page, launchIntent = { launchIntentTest() })
+                        0 -> Feed(feedViewModel = mainActivityViewModel.feedViewModel)
+                        1 -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
+                        2 -> NotificationCenter(notificationCenterViewModel = mainActivityViewModel.notificationCenterViewModel)
+                        else -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
                     }
                 }
             }

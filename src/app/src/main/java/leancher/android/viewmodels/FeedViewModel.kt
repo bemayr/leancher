@@ -1,13 +1,13 @@
-package leancher.android.ui.states
+package leancher.android.viewmodels
 
 import android.appwidget.AppWidgetProviderInfo
+import androidx.lifecycle.ViewModel
 
 class Widget (id: Int, providerInfo: AppWidgetProviderInfo) {
     val id: Int = id
     val providerInfo: AppWidgetProviderInfo = providerInfo
 }
 
-class FeedState(selectWidgetFun: () -> Unit) {
-    val selectWidgetFun: () -> Unit = selectWidgetFun
-    val widgets: MutableList<Widget> = mutableListOf()
+class FeedViewModel(widgets: MutableList<Widget>): ViewModel() {
+    val widgets = widgets
 }

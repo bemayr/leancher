@@ -3,7 +3,6 @@ package leancher.android
 import android.Manifest
 import android.content.ComponentName
 import android.appwidget.AppWidgetHost
-import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.SharedPreferences
@@ -13,39 +12,21 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import android.view.ViewGroup
-import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.AmbientAnimationClock
 import androidx.compose.ui.platform.setContent
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import leancher.android.domain.services.NotificationService
-import leancher.android.ui.components.Pager
-import leancher.android.ui.components.PagerState
-import leancher.android.ui.components.Paginator
 import leancher.android.ui.layouts.PagerLayout
-import leancher.android.ui.states.FeedState
-import leancher.android.ui.states.Widget
-import leancher.android.ui.pages.Feed
-import leancher.android.ui.pages.Home
-import leancher.android.ui.pages.NotificationCenter
 import leancher.android.ui.theme.LeancherTheme
+import leancher.android.viewmodels.*
 
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
     private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
 
-    private val APPWIDGET_HOST_ID           = 1024
-    private val REQUEST_CREATE_APPWIDGET    = 5
-    private val REQUEST_PICK_APPWIDGET      = 9
+    private val APPWIDGET_HOST_ID = 1024
+    private val REQUEST_CREATE_APPWIDGET = 5
+    private val REQUEST_PICK_APPWIDGET = 9
 
     private lateinit var appWidgetManager: AppWidgetManager
     private lateinit var appWidgetHost: AppWidgetHost
@@ -53,7 +34,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
 
-    private var feedState: FeedState = FeedState(selectWidgetFun = { selectWidget() })
+    private lateinit var  viewModelStateManager: ViewModelStateManager
+    private lateinit var mainActivityViewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -65,9 +47,27 @@ class MainActivity : AppCompatActivity() {
 
         requestLeancherPermissions()
 
+        viewModelStateManager = ViewModelStateManager(this)
+        initializeViewState()
+
         // set default view with compose => Pager
         setContent {
             Leancher()
+        }
+    }
+
+    private fun initializeViewState() {
+        val viewState = viewModelStateManager.restoreViewState()
+        if (viewState != null) {
+            mainActivityViewModel = viewState
+        } else {
+            mainActivityViewModel = MainActivityViewModel(
+                homeViewModel = HomeViewModel(),
+                feedViewModel = FeedViewModel(
+                    widgets = mutableListOf()
+                ),
+                notificationCenterViewModel = NotificationCenterViewModel()
+            )
         }
     }
 
@@ -88,6 +88,11 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModelStateManager.persistViewState(mainActivityViewModel)
+    }
+
     override fun onStop() {
         super.onStop()
         appWidgetHost.stopListening()
@@ -104,7 +109,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun getNotifications() {
         Log.i(TAG, "Waiting for MyNotificationService")
-        val myNotificationService: NotificationService? = getSystemService(NotificationService::class.java)
+        val myNotificationService: NotificationService? =
+            getSystemService(NotificationService::class.java)
         Log.i(TAG, "Active Notifications: [")
         if (myNotificationService != null) {
             for (notification in myNotificationService.getActiveNotifications()) {
@@ -116,7 +122,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun isNotificationServiceEnabled(): Boolean {
         val pkgName = packageName
-        val allNames = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        val allNames =
+            Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
         if (allNames != null && !allNames.isEmpty()) {
             for (name in allNames.split(":").toTypedArray()) {
                 if (packageName == ComponentName.unflattenFromString(name)!!.packageName) {
@@ -153,7 +160,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun selectWidget() {
+    fun selectWidget() {
         val appWidgetId = appWidgetHost.allocateAppWidgetId()
         val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK)
         pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -181,20 +188,19 @@ class MainActivity : AppCompatActivity() {
         // val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
         // hostView.setAppWidget(appWidgetId, appWidgetInfo)
 
-        feedState.widgets.add(Widget(appWidgetId, appWidgetInfo))
+        mainActivityViewModel.feedViewModel.widgets.add(Widget(appWidgetId, appWidgetInfo))
     }
 
     private fun removeWidget(widget: Widget) {
-        feedState.widgets.remove(widget)
+        mainActivityViewModel.feedViewModel.widgets.remove(widget)
     }
 
     @Composable
     fun Leancher() {
         LeancherTheme(
-                content = {
-                    PagerLayout(feedState = feedState, launchIntentTest = { launchIntentTest() })
-                }
+            content = {
+                PagerLayout(mainActivityViewModel = mainActivityViewModel)
+            }
         )
     }
-
 }

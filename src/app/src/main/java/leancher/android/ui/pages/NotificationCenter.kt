@@ -5,10 +5,8 @@ import android.content.Context
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ContextAmbient
@@ -16,15 +14,13 @@ import androidx.compose.ui.unit.dp
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.*
-import leancher.android.ui.theme.White
-
-lateinit var notificationTitleModel: PageTitle
+import leancher.android.viewmodels.NotificationCenterViewModel
 
 @Composable
-fun NotificationCenter(page: Int) {
+fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel) {
     val context = ContextAmbient.current
 
-    notificationTitleModel = PageTitle(
+    val notificationTitleModel = PageTitle(
             context.getString(leancher.android.R.string.page_notification_center),
             "Manage your notifications here",
             R.drawable.notification)
