@@ -2,15 +2,19 @@ package leancher.android.ui.pages
 
 import android.app.NotificationManager
 import android.content.Context
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ContextAmbient
 import androidx.compose.ui.unit.dp
+import leancher.android.MainActivity
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.*
@@ -18,7 +22,8 @@ import leancher.android.viewmodels.NotificationCenterViewModel
 
 @Composable
 fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel) {
-    val context = ContextAmbient.current
+    val context = AmbientContext.current
+    val activity: MainActivity = context as MainActivity
 
     val notificationTitleModel = PageTitle(
             context.getString(leancher.android.R.string.page_notification_center),
@@ -44,14 +49,16 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
 
     Row {
         ActionDialogDemo()
-    }
 
-    Row {
         IconButton(icon = Icons.Filled.Delete, action = { println(" ==== DELETE ====") }, "Delete all")
+
+        ActionButton(text = "Print Notification", action = {
+            activity.readNotifications()
+        })
     }
     
     Row {
-       NotificationList(notifications = fakeNotifications)
+        NotificationList(notifications = notificationCenterViewModel.notifications)
     }
 
     // ActionButton(text = "Print Notification", action = {
@@ -59,15 +66,6 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
         // val myNotificationService: NotificationService? = context.getSystemService(NotificationService::class.java)
         // val notifications = NotificationService().getActiveNotifications()
     // }
-
-    ActionButton(text = "Print Notification", action = {
-        
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notifications = notificationManager.activeNotifications
-
-        println("notifications length ${notifications?.size}")
-        notifications?.forEach { n -> println(n.notification) }
-    })
 }
 
 fun hideStatusBar() {

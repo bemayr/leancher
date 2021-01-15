@@ -1,11 +1,9 @@
 package leancher.android
 
 import android.Manifest
-import android.content.ComponentName
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.*
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
@@ -14,11 +12,22 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.setContent
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import leancher.android.domain.models.Notification
 import leancher.android.domain.services.NotificationService
+import leancher.android.domain.services.NotificationService.Companion.CLEAR_NOTIFICATIONS
+import leancher.android.domain.services.NotificationService.Companion.COMMAND_KEY
+import leancher.android.domain.services.NotificationService.Companion.GET_ACTIVE_NOTIFICATIONS
+import leancher.android.domain.services.NotificationService.Companion.READ_COMMAND_ACTION
+import leancher.android.domain.services.NotificationService.Companion.RESULT_KEY
+import leancher.android.domain.services.NotificationService.Companion.RESULT_VALUE
+import leancher.android.domain.services.NotificationService.Companion.UPDATE_UI_ACTION
 import leancher.android.ui.layouts.PagerLayout
 import leancher.android.ui.theme.LeancherTheme
 import leancher.android.viewmodels.*
-
+import java.lang.reflect.Type
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
@@ -56,6 +65,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Define the callback for what to do when data is received
+    private val clientLooperReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+
+            val resultCode = intent.getIntExtra(RESULT_KEY, RESULT_CANCELED)
+            if (resultCode == RESULT_OK) {
+                val resultValue = intent.getStringExtra(RESULT_VALUE)
+                val gson = Gson()
+                val type: Type = object : TypeToken<List<Notification>>(){}.type
+
+                val notifications: List<Notification> = gson.fromJson(resultValue, type)
+                mainActivityViewModel.notificationCenterViewModel.notifications = mutableListOf()
+                notifications.forEach { notification ->
+                    mainActivityViewModel.notificationCenterViewModel.notifications!!.add(notification)
+                }
+            }
+        }
+    }
+
     private fun initializeViewState() {
         val viewState = viewModelStateManager.restoreViewState()
         if (viewState != null) {
@@ -66,9 +94,12 @@ class MainActivity : AppCompatActivity() {
                 feedViewModel = FeedViewModel(
                     widgets = mutableListOf()
                 ),
-                notificationCenterViewModel = NotificationCenterViewModel()
+                notificationCenterViewModel = NotificationCenterViewModel(
+                    notifications = mutableListOf()
+                )
             )
         }
+        readNotifications()
     }
 
     override fun onStart() {
@@ -86,6 +117,14 @@ class MainActivity : AppCompatActivity() {
 
             requestLeancherPermissions()
         }
+
+        //Register to Broadcast for Updating UI
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            clientLooperReceiver,
+            IntentFilter(UPDATE_UI_ACTION)
+        )
+
+        readNotifications()
     }
 
     override fun onPause() {
@@ -98,6 +137,13 @@ class MainActivity : AppCompatActivity() {
         appWidgetHost.stopListening()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+
+        //Unregister to Broadcast for Updating UI
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(clientLooperReceiver)
+    }
+
     private fun requestLeancherPermissions() {
         if (checkSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(arrayOf(Manifest.permission.ACCESS_NOTIFICATION_POLICY), 1);
@@ -105,6 +151,18 @@ class MainActivity : AppCompatActivity() {
         if (!isNotificationServiceEnabled()) {
             startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
+    }
+
+    fun readNotifications() {
+        val i = Intent(READ_COMMAND_ACTION)
+        i.putExtra(COMMAND_KEY, GET_ACTIVE_NOTIFICATIONS)
+        sendBroadcast(i)
+    }
+
+    fun clearNotifications() {
+        val i = Intent(READ_COMMAND_ACTION)
+        i.putExtra(COMMAND_KEY, CLEAR_NOTIFICATIONS)
+        sendBroadcast(i)
     }
 
     private fun getNotifications() {
