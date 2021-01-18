@@ -1,18 +1,14 @@
 package leancher.android.ui.pages
 
-import android.app.NotificationManager
-import android.content.Context
-import android.graphics.drawable.Icon
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Icon
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientContext
-import androidx.compose.ui.platform.ContextAmbient
 import androidx.compose.ui.unit.dp
 import leancher.android.MainActivity
 import leancher.android.R
@@ -26,9 +22,10 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
     val activity: MainActivity = context as MainActivity
 
     val notificationTitleModel = PageTitle(
-            context.getString(leancher.android.R.string.page_notification_center),
-            "Manage your notifications here",
-            R.drawable.notification)
+        context.getString(leancher.android.R.string.page_notification_center),
+        "Manage your notifications here",
+        R.drawable.notification
+    )
 
     Row {
         Column(Modifier.padding(10.dp)) {
@@ -36,37 +33,26 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
         }
     }
 
-    Row {
-        Column(Modifier.padding(10.dp)) {
-            ActionSwitch(
-                    onAction = { activity.showOrHideStatusBar() },
-                    offAction = { activity.showOrHideStatusBar(false) },
-                    text = "Show / Hide Notification Bar")
+    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        ActionSwitch(
+            onAction = { activity.showOrHideStatusBar() },
+            offAction = { activity.showOrHideStatusBar(false) },
+            text = "Hide Notifications"
+        )
+        Spacer(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .background(color = MaterialTheme.colors.secondary)
+                .defaultMinSizeConstraints(minHeight = 30.dp, minWidth = 2.dp)
+        )
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+            IconButton(icon = Icons.Filled.Delete, action = {
+                activity.clearNotifications()
+            }, "Clear all")
         }
     }
 
     Row {
-        ActionDialogDemo()
-
-        IconButton(icon = Icons.Filled.Delete, action = {
-            activity.clearNotifications()
-        }, "Clear all")
-
-        ActionButton(text = "Print Notification", action = {
-            activity.readNotifications()
-        })
-    }
-    
-    Row {
         NotificationList(notifications = notificationCenterViewModel.notifications)
     }
-}
-
-fun hideStatusBar() {
-    // Hide the status bar.
-    // window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-
-    // Remember that you should never show the action bar if the
-    // status bar is hidden, so hide that too if necessary.
-    // actionBar?.hide()
 }

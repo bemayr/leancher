@@ -21,7 +21,7 @@ fun IconButton(icon: ImageVector, action: () -> Unit, text: String? = null) {
         }) {
             Icon(icon, Modifier.preferredSize(20.dp))
             Spacer(modifier = Modifier.width(5.dp))
-            Text(text = "$text!")
+            Text(text = "$text")
         }
     } else {
         Icon(icon, Modifier

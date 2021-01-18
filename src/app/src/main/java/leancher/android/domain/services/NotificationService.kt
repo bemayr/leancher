@@ -1,15 +1,11 @@
 package leancher.android.domain.services
 
-import android.R.id
 import android.app.Activity
 import android.app.Notification
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -40,11 +36,15 @@ class NotificationService : NotificationListenerService() {
         gson = Gson()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(commandFromUIReceiver)
+    }
+
     override fun onListenerConnected() {
         super.onListenerConnected()
         fetchCurrentNotifications()
     }
-
 
     override fun onNotificationPosted(newNotification: StatusBarNotification) {
         fetchCurrentNotifications()
@@ -59,13 +59,13 @@ class NotificationService : NotificationListenerService() {
 
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.getStringExtra(COMMAND_KEY) == CLEAR_NOTIFICATIONS)
-                // remove Notifications
+                // remove notifications
                 cancelAllNotifications()
             else if (intent.getStringExtra(COMMAND_KEY) == GET_ACTIVE_NOTIFICATIONS)
-                // read Notifications
+                // read notifications
                 fetchCurrentNotifications()
             else if (intent.getStringExtra(COMMAND_KEY) == DISMISS_NOTIFICATION)
-                // dismiss Notification
+                // dismiss notification
                 dismissNotification(intent = intent)
         }
     }
@@ -77,9 +77,6 @@ class NotificationService : NotificationListenerService() {
         }
     }
 
-    /**
-     * Fetch list of Active Notifications
-     */
     private fun fetchCurrentNotifications() {
         var notifications = mutableListOf<leancher.android.domain.models.Notification>()
         this@NotificationService.activeNotifications.forEach { statusBarNotification ->
@@ -99,17 +96,11 @@ class NotificationService : NotificationListenerService() {
     }
 
 
-    // sendMessage success result on UI
     private fun sendResultOnUI(result: String?) {
         val resultIntent = Intent(UPDATE_UI_ACTION)
         resultIntent.putExtra(RESULT_KEY, Activity.RESULT_OK)
         resultIntent.putExtra(RESULT_VALUE, result)
         LocalBroadcastManager.getInstance(this).sendBroadcast(resultIntent)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(commandFromUIReceiver)
     }
 
     companion object {

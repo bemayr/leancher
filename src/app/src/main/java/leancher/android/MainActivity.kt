@@ -64,18 +64,18 @@ class MainActivity : AppCompatActivity() {
         viewModelStateManager = ViewModelStateManager(this)
         initializeViewState()
 
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+//        notificationManager.notificationPolicy = NotificationManager.Policy(
+//            NotificationManager.Policy.PRIORITY_CATEGORY_CALLS,
+//            NotificationManager.Policy.CONVERSATION_SENDERS_ANYONE,
+//            NotificationManager.Policy.PRIORITY_SENDERS_ANY
+//        )
+
         // set default view with compose => Pager
         setContent {
             Leancher()
         }
-
-//        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-//        val currentFilter = notificationManager.currentInterruptionFilter
-
-//        val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-//        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-//        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALARMS)
-//        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
     }
 
     // Define the callback for what to do when data is received
@@ -277,11 +277,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showOrHideStatusBar(show: Boolean = true) {
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
          // Show / Hide the status bar.
         if(show == true) {
             window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
         } else {
             window?.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
         }
 
          // Remember that you should never show the action bar if the
