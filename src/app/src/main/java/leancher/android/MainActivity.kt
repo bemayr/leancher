@@ -192,8 +192,10 @@ class MainActivity : AppCompatActivity() {
         mainActivityViewModel.feedViewModel.widgets.add(Widget(appWidgetId, appWidgetInfo))
     }
 
-    private fun removeWidget(widget: Widget) {
-        mainActivityViewModel.feedViewModel.widgets.remove(widget)
+    fun removeWidget(widget: Widget) {
+        mainActivityViewModel.feedViewModel.widgets.removeIf {
+                w -> w.id == widget.id
+        }
     }
 
     @Composable
