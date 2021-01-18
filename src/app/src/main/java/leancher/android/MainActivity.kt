@@ -1,6 +1,7 @@
 package leancher.android
 
 import android.Manifest
+import android.app.NotificationManager
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.content.*
@@ -9,6 +10,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.setContent
@@ -29,6 +31,7 @@ import leancher.android.ui.layouts.PagerLayout
 import leancher.android.ui.theme.LeancherTheme
 import leancher.android.viewmodels.*
 import java.lang.reflect.Type
+
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
@@ -65,6 +68,14 @@ class MainActivity : AppCompatActivity() {
         setContent {
             Leancher()
         }
+
+//        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+//        val currentFilter = notificationManager.currentInterruptionFilter
+
+//        val mNotificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+//        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+//        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALARMS)
+//        mNotificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_PRIORITY)
     }
 
     // Define the callback for what to do when data is received
@@ -263,6 +274,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun removeWidget(widget: Widget) {
         mainActivityViewModel.feedViewModel.widgets.remove(widget)
+    }
+
+    fun showOrHideStatusBar(show: Boolean = true) {
+         // Show / Hide the status bar.
+        if(show == true) {
+            window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        } else {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        }
+
+         // Remember that you should never show the action bar if the
+         // status bar is hidden, so hide that too if necessary.
+         // actionBar?.hide()
     }
 
     @Composable

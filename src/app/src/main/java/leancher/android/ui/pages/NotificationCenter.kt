@@ -39,9 +39,9 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
     Row {
         Column(Modifier.padding(10.dp)) {
             ActionSwitch(
-                    onAction = { println(" ============= ON ============= ") },
-                    offAction = { println(" ============= OFF ============= ") },
-                    text = "Enable / Disable Notifications")
+                    onAction = { activity.showOrHideStatusBar() },
+                    offAction = { activity.showOrHideStatusBar(false) },
+                    text = "Show / Hide Notification Bar")
         }
     }
 
