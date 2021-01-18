@@ -1,15 +1,19 @@
 package leancher.android.domain.services
 
+import android.R.id
 import android.app.Activity
 import android.app.Notification
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import android.util.Log
+import androidx.appcompat.app.AppCompatActivity
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 
@@ -34,31 +38,20 @@ class NotificationService : NotificationListenerService() {
         registerReceiver(commandFromUIReceiver, filter)
 
         gson = Gson()
+    }
 
+    override fun onListenerConnected() {
+        super.onListenerConnected()
         fetchCurrentNotifications()
     }
 
 
-    /**
-     * New Notn Added Callback
-     */
     override fun onNotificationPosted(newNotification: StatusBarNotification) {
-        Log.i(
-            TAG,
-            "-------- onNotificationPosted(): " + "ID :" + newNotification.id + "\t" + newNotification.notification.tickerText + "\t" + newNotification.packageName
-        )
-        sendResultOnUI("onNotificationPosted :" + newNotification.packageName + "\n")
+        fetchCurrentNotifications()
     }
 
-    /**
-     * Notn Removed callback
-     */
     override fun onNotificationRemoved(removedNotification: StatusBarNotification) {
-        Log.i(
-            TAG,
-            "-------- onNotificationRemoved() :" + "ID :" + removedNotification.id + "\t" + removedNotification.notification.tickerText + "\t" + removedNotification.packageName
-        )
-        sendResultOnUI("onNotificationRemoved: " + removedNotification.packageName + "\n")
+        fetchCurrentNotifications()
     }
 
 
@@ -71,9 +64,18 @@ class NotificationService : NotificationListenerService() {
             else if (intent.getStringExtra(COMMAND_KEY) == GET_ACTIVE_NOTIFICATIONS)
                 // read Notifications
                 fetchCurrentNotifications()
+            else if (intent.getStringExtra(COMMAND_KEY) == DISMISS_NOTIFICATION)
+                // dismiss Notification
+                dismissNotification(intent = intent)
         }
     }
 
+    private fun dismissNotification(intent: Intent) {
+        if(intent.getIntExtra(RESULT_KEY, AppCompatActivity.RESULT_CANCELED) == Activity.RESULT_OK) {
+            val resultValue = intent.getStringExtra(RESULT_VALUE)
+            cancelNotification(resultValue)
+        }
+    }
 
     /**
      * Fetch list of Active Notifications
@@ -82,14 +84,14 @@ class NotificationService : NotificationListenerService() {
         var notifications = mutableListOf<leancher.android.domain.models.Notification>()
         this@NotificationService.activeNotifications.forEach { statusBarNotification ->
             val extras: Bundle = statusBarNotification.notification.extras
-            val notification = leancher.android.domain.models.Notification (
-                        key = statusBarNotification.key,
-                        title = extras[Notification.EXTRA_TITLE].toString(),
-                        text = extras[Notification.EXTRA_TEXT].toString(),
-                        iconId = statusBarNotification.notification.icon,
-                        icon = statusBarNotification.notification.smallIcon,
-                        originalNotificaion = statusBarNotification
-                    )
+            val notification = leancher.android.domain.models.Notification(
+                key = statusBarNotification.key,
+                packageName = statusBarNotification.packageName,
+                title = extras[Notification.EXTRA_TITLE].toString(),
+                text = extras[Notification.EXTRA_TEXT].toString(),
+                icon = statusBarNotification.notification.smallIcon,
+                originalNotification = statusBarNotification
+            )
             notifications.add(notification)
         }
 
@@ -127,5 +129,6 @@ class NotificationService : NotificationListenerService() {
         const val COMMAND_KEY = "READ_COMMAND"
         const val CLEAR_NOTIFICATIONS = "clearall"
         const val GET_ACTIVE_NOTIFICATIONS = "list"
+        const val DISMISS_NOTIFICATION = "dismiss"
     }
 }

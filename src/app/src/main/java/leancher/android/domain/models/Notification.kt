@@ -5,16 +5,16 @@ import android.service.notification.StatusBarNotification
 
 class Notification(
     key: String,
+    packageName: String,
     title: String,
     text: String,
-    iconId: Int,
     icon: Icon,
-    originalNotificaion: StatusBarNotification
+    originalNotification: StatusBarNotification
 ) {
     val key = key
+    val packageName = packageName
     val title = title
     val text = text
-    val iconId = iconId
     val icon = icon
-    val originalNotificaion = originalNotificaion
+    val originalNotification = originalNotification
 }

@@ -30,8 +30,6 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
             "Manage your notifications here",
             R.drawable.notification)
 
-    val fakeNotifications = listOf<String>("1", "2", "3", "4", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5")
-
     Row {
         Column(Modifier.padding(10.dp)) {
             TitleCard(pageTitle = notificationTitleModel, null)
@@ -50,7 +48,9 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
     Row {
         ActionDialogDemo()
 
-        IconButton(icon = Icons.Filled.Delete, action = { println(" ==== DELETE ====") }, "Delete all")
+        IconButton(icon = Icons.Filled.Delete, action = {
+            activity.clearNotifications()
+        }, "Clear all")
 
         ActionButton(text = "Print Notification", action = {
             activity.readNotifications()
@@ -60,12 +60,6 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
     Row {
         NotificationList(notifications = notificationCenterViewModel.notifications)
     }
-
-    // ActionButton(text = "Print Notification", action = {
-        // val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        // val myNotificationService: NotificationService? = context.getSystemService(NotificationService::class.java)
-        // val notifications = NotificationService().getActiveNotifications()
-    // }
 }
 
 fun hideStatusBar() {

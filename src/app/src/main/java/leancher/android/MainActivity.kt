@@ -19,6 +19,7 @@ import leancher.android.domain.models.Notification
 import leancher.android.domain.services.NotificationService
 import leancher.android.domain.services.NotificationService.Companion.CLEAR_NOTIFICATIONS
 import leancher.android.domain.services.NotificationService.Companion.COMMAND_KEY
+import leancher.android.domain.services.NotificationService.Companion.DISMISS_NOTIFICATION
 import leancher.android.domain.services.NotificationService.Companion.GET_ACTIVE_NOTIFICATIONS
 import leancher.android.domain.services.NotificationService.Companion.READ_COMMAND_ACTION
 import leancher.android.domain.services.NotificationService.Companion.RESULT_KEY
@@ -31,7 +32,8 @@ import java.lang.reflect.Type
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
-    private val ACTION_NOTIFICATION_LISTENER_SETTINGS = "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
+    private val ACTION_NOTIFICATION_LISTENER_SETTINGS =
+        "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
 
     private val APPWIDGET_HOST_ID = 1024
     private val REQUEST_CREATE_APPWIDGET = 5
@@ -43,7 +45,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences: SharedPreferences
     private lateinit var editor: SharedPreferences.Editor
 
-    private lateinit var  viewModelStateManager: ViewModelStateManager
+    private lateinit var viewModelStateManager: ViewModelStateManager
     private lateinit var mainActivityViewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -73,12 +75,15 @@ class MainActivity : AppCompatActivity() {
             if (resultCode == RESULT_OK) {
                 val resultValue = intent.getStringExtra(RESULT_VALUE)
                 val gson = Gson()
-                val type: Type = object : TypeToken<List<Notification>>(){}.type
+                val type: Type = object : TypeToken<MutableList<Notification>>() {}.type
 
-                val notifications: List<Notification> = gson.fromJson(resultValue, type)
+                val notifications: List<Notification> =
+                    gson.fromJson(resultValue, type) as List<Notification>
                 mainActivityViewModel.notificationCenterViewModel.notifications = mutableListOf()
                 notifications.forEach { notification ->
-                    mainActivityViewModel.notificationCenterViewModel.notifications!!.add(notification)
+                    mainActivityViewModel.notificationCenterViewModel.notifications!!.add(
+                        notification
+                    )
                 }
             }
         }
@@ -99,7 +104,6 @@ class MainActivity : AppCompatActivity() {
                 )
             )
         }
-        readNotifications()
     }
 
     override fun onStart() {
@@ -162,6 +166,14 @@ class MainActivity : AppCompatActivity() {
     fun clearNotifications() {
         val i = Intent(READ_COMMAND_ACTION)
         i.putExtra(COMMAND_KEY, CLEAR_NOTIFICATIONS)
+        sendBroadcast(i)
+    }
+
+    fun dismissNotification(key: String) {
+        val i = Intent(READ_COMMAND_ACTION)
+        i.putExtra(COMMAND_KEY, DISMISS_NOTIFICATION)
+        i.putExtra(RESULT_KEY, RESULT_OK)
+        i.putExtra(RESULT_VALUE, key)
         sendBroadcast(i)
     }
 
