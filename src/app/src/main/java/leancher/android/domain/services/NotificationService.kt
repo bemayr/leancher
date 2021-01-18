@@ -1,6 +1,7 @@
 package leancher.android.domain.services
 
 import android.content.Intent
+import android.net.Uri
 import android.os.IBinder
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
@@ -28,6 +29,8 @@ class NotificationService: NotificationListenerService() {
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         super.onNotificationPosted(sbn)
+
+        Uri.parse("asdf").let {  }
 
         println("notification received")
         println(sbn)

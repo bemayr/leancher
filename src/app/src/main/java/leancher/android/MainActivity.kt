@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
@@ -203,4 +204,34 @@ class MainActivity : AppCompatActivity() {
             }
         )
     }
+
+    private fun testIntentStuff() {
+        fun isIntentCallable(intent: Intent): Boolean =
+            packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY) // TODO: check whether this flag is needed
+                .isNotEmpty()
+
+        val testIntent = Intent("test")
+        val sendIntent = Intent("send")
+        val callIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:5551234"))
+        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.android.com"))
+
+        Log.i("INTENTS", "test ?= ${isIntentCallable(testIntent)}")
+        Log.i("INTENTS", "send ?= ${isIntentCallable(sendIntent)}")
+        Log.i("INTENTS", "call ?= ${isIntentCallable(callIntent)}")
+        Log.i("INTENTS", "web ?= ${isIntentCallable(webIntent)}")
+
+        startActivity(Intent.createChooser(sendIntent, "Chose some app..."))
+    }
 }
+
+/*
+
+String action !including Namespace // https://developer.android.com/reference/android/content/Intent#Intent(java.lang.String)
+Uri data | setDataAndNormalize // https://developer.android.com/reference/android/content/Intent#setData(android.net.Uri)
+String type | setTypeAndNormalize // https://developer.android.com/reference/android/content/Intent#setTypeAndNormalize(java.lang.String)
+
+Boolean showChooser // https://developer.android.com/training/basics/intents/sending#AppChooser
+String? chooserTitle
+
+
+ */
