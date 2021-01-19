@@ -57,6 +57,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    fun getAppWidgetHost(): AppWidgetHost {
+        return appWidgetHost
+    }
+
     private fun initializeViewState() {
         val viewState = viewModelStateManager.restoreViewState()
         if (viewState != null) {
@@ -96,7 +100,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        appWidgetHost.stopListening()
+        // TODO: fix bug -> should stop listening on widget changes while app is not in foreground
+        // but call throws null pointer when attempting to read from field ->
+        // 'com.android.server.appwidget.AppWidgetServiceImpl$ProviderId com.android.server.appwidget.AppWidgetServiceImpl$Provider.id'
+        // appWidgetHost.stopListening()
     }
 
     private fun requestLeancherPermissions() {

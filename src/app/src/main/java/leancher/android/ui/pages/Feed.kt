@@ -48,10 +48,13 @@ fun Feed(feedViewModel: FeedViewModel) {
 fun WidgetHostView(feedViewModel: FeedViewModel) {
     val context = AmbientContext.current
     val activity: MainActivity = context as MainActivity
-    val appWidgetHost = AppWidgetHost(context, 1024)
+    val appWidgetHost = activity.getAppWidgetHost()
 
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     // https://developer.android.google.cn/reference/kotlin/androidx/compose/foundation/package-summary
+
+    // TODO: get dialog out of forEach loop (find suitable workaround for callback (with parameter)
+    // TODO: bugfix every time when a widget is deleted, the last one in the list is not rendered any more - why?
 
     ScrollableColumn() {
         feedViewModel.widgets.forEach { w ->
