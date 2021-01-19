@@ -58,6 +58,7 @@ class MainActivity : AppCompatActivity() {
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
+        appWidgetHost.startListening()
 
         requestLeancherPermissions()
 
@@ -76,6 +77,10 @@ class MainActivity : AppCompatActivity() {
         setContent {
             Leancher()
         }
+    }
+
+    fun getAppWidgetHost(): AppWidgetHost {
+        return appWidgetHost
     }
 
     // Define the callback for what to do when data is received
@@ -101,7 +106,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun initializeViewState() {
-        val viewState = viewModelStateManager.restoreViewState()
+        val viewState: MainActivityViewModel? = viewModelStateManager.restoreViewState()
         if (viewState != null) {
             mainActivityViewModel = viewState
         } else {
@@ -149,7 +154,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        appWidgetHost.stopListening()
+        appWidgetHost?.stopListening()
     }
 
     override fun onDestroy() {
@@ -180,11 +185,11 @@ class MainActivity : AppCompatActivity() {
         sendBroadcast(i)
     }
 
-    fun dismissNotification(key: String) {
+    fun dismissNotification(notification: Notification) {
         val i = Intent(READ_COMMAND_ACTION)
         i.putExtra(COMMAND_KEY, DISMISS_NOTIFICATION)
         i.putExtra(RESULT_KEY, RESULT_OK)
-        i.putExtra(RESULT_VALUE, key)
+        i.putExtra(RESULT_VALUE, notification.key)
         sendBroadcast(i)
     }
 

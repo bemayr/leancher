@@ -23,7 +23,8 @@ import leancher.android.viewmodels.FeedViewModel
 
 @Composable
 fun Feed(feedViewModel: FeedViewModel) {
-    val context = ContextAmbient.current
+    val context = AmbientContext.current
+
     val feedTitleModel = PageTitle(
         context.getString(R.string.page_widget_feed),
         "Your widget feed",
@@ -53,7 +54,9 @@ fun Feed(feedViewModel: FeedViewModel) {
 @Composable
 fun WidgetHostView(feedViewModel: FeedViewModel) {
     val context = AmbientContext.current
-    val appWidgetHost = AppWidgetHost(context, 1024)
+    val activity: MainActivity = context as MainActivity
+
+    val appWidgetHost = activity.getAppWidgetHost()
 
     ScrollableColumn() {
         feedViewModel.widgets.forEach { w ->

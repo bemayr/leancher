@@ -1,6 +1,5 @@
 package leancher.android.ui.components
 
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.layout.*
@@ -20,12 +19,13 @@ import leancher.android.domain.models.Notification
 import leancher.android.ui.theme.White
 
 @Composable
-fun NotificationList(notifications: List<Notification>?) {
+@Deprecated("Use SwipeActionList")
+fun NotificationList(notifications: List<Notification>) {
     val context = AmbientContext.current
     val activity: MainActivity = context as MainActivity
 
     ScrollableColumn(Modifier.fillMaxHeight()) {
-        if(notifications == null || (notifications != null && notifications.size == 0)) {
+        if(notifications.isEmpty()) {
             Text(text = "No active notifications!")
         } else {
             notifications.forEach { notification ->
@@ -40,8 +40,6 @@ fun NotificationList(notifications: List<Notification>?) {
                     Row(Modifier.padding(vertical = 5.dp), verticalAlignment = Alignment.CenterVertically
                     ) {
                         Column(verticalArrangement = Arrangement.Center) {
-                            val drawable = notification.icon.loadDrawable(AmbientContext.current)
-//                            val bitmap = BitmapFactory.decodeResource(AmbientContext.current.getResources(), notification.icon.resId)
                             Image(
                                 imageResource(id = R.drawable.notification),
                                 contentScale = ContentScale.Crop,
@@ -58,7 +56,7 @@ fun NotificationList(notifications: List<Notification>?) {
                         }
                         Column(Modifier.padding(horizontal = 10.dp).fillMaxWidth(), horizontalAlignment = Alignment.End) {
                             IconButton(icon = Icons.Filled.Delete, action = {
-                                activity.dismissNotification(notification.key)
+                                activity.dismissNotification(notification)
                             })
                         }
                     }

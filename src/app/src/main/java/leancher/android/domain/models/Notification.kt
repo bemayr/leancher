@@ -1,5 +1,6 @@
 package leancher.android.domain.models
 
+import android.app.PendingIntent
 import android.graphics.drawable.Icon
 import android.service.notification.StatusBarNotification
 

@@ -14,7 +14,9 @@ import leancher.android.MainActivity
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.*
+import leancher.android.ui.components.itemtemplates.NotificationItemTemplate
 import leancher.android.viewmodels.NotificationCenterViewModel
+
 
 @Composable
 fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel) {
@@ -53,6 +55,18 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
     }
 
     Row {
-        NotificationList(notifications = notificationCenterViewModel.notifications)
+        SwipeActionList(
+            innerPadding = PaddingValues(),
+            items = notificationCenterViewModel.notifications.toList(),
+            itemTemplate = { notification -> NotificationItemTemplate(notification) },
+            onSwipe = { notification -> activity.dismissNotification(notification) },
+            onClick = { notification ->
+                val launchIntent = context.getPackageManager()?.getLaunchIntentForPackage(notification.packageName)
+                if(launchIntent != null) {
+                    context.startActivity(launchIntent)
+                }
+            },
+            Modifier.fillMaxWidth()
+        )
     }
 }
