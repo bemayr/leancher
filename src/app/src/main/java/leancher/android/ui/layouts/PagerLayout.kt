@@ -1,5 +1,8 @@
 package leancher.android.ui.layouts
 
+import android.widget.LinearLayout
+import androidx.compose.foundation.ScrollableColumn
+import androidx.compose.foundation.ScrollableRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -31,26 +34,29 @@ fun PagerLayout(mainActivityViewModel: MainActivityViewModel) {
         remember(clock) { PagerState(clock, 1, 0, 2) }
     }
 
-    Row(modifier = Modifier.background(MaterialTheme.colors.background)) {
-        Pager(state = pagerState) {
-            Row(Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Column() {
-                    when(page) {
-                        0 -> Feed(feedViewModel = mainActivityViewModel.feedViewModel)
-                        1 -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
-                        2 -> NotificationCenter(notificationCenterViewModel = mainActivityViewModel.notificationCenterViewModel)
-                        else -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
-                    }
+    Pager(state = pagerState) {
+        Row(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colors.background)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Column() {
+                when (page) {
+                    0 -> Feed(feedViewModel = mainActivityViewModel.feedViewModel)
+                    1 -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
+                    2 -> NotificationCenter(notificationCenterViewModel = mainActivityViewModel.notificationCenterViewModel)
+                    else -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
                 }
             }
         }
-        Row(Modifier
-                .fillMaxSize(), verticalAlignment = Alignment.Bottom) {
-            Column() {
-                Paginator(pageAmount = 3, currentPage = currentPage)
-            }
+    }
+    Row(
+        Modifier
+            .fillMaxSize(), verticalAlignment = Alignment.Bottom
+    ) {
+        Column() {
+            Paginator(pageAmount = 3, currentPage = currentPage)
         }
     }
 }
