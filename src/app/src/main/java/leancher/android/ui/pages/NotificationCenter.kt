@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.unit.dp
 import leancher.android.MainActivity
 import leancher.android.R
+import leancher.android.domain.models.Notification
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.*
 import leancher.android.ui.components.itemtemplates.NotificationItemTemplate
@@ -57,7 +58,7 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
     Row {
         SwipeActionList(
             innerPadding = PaddingValues(),
-            items = notificationCenterViewModel.notifications.toList(),
+            items = if(notificationCenterViewModel.notifications == null) listOf<Notification>() else notificationCenterViewModel.notifications.toList(),
             itemTemplate = { notification -> NotificationItemTemplate(notification) },
             onSwipe = { notification -> activity.dismissNotification(notification) },
             onClick = { notification ->

@@ -109,6 +109,7 @@ class MainActivity : AppCompatActivity() {
         val viewState: MainActivityViewModel? = viewModelStateManager.restoreViewState()
         if (viewState != null) {
             mainActivityViewModel = viewState
+            mainActivityViewModel.notificationCenterViewModel.notifications = mutableListOf()
         } else {
             mainActivityViewModel = MainActivityViewModel(
                 homeViewModel = HomeViewModel(),
@@ -154,7 +155,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        appWidgetHost?.stopListening()
+        // appWidgetHost.stopListening()
     }
 
     override fun onDestroy() {
@@ -193,19 +194,6 @@ class MainActivity : AppCompatActivity() {
         sendBroadcast(i)
     }
 
-    private fun getNotifications() {
-        Log.i(TAG, "Waiting for MyNotificationService")
-        val myNotificationService: NotificationService? =
-            getSystemService(NotificationService::class.java)
-        Log.i(TAG, "Active Notifications: [")
-        if (myNotificationService != null) {
-            for (notification in myNotificationService.getActiveNotifications()) {
-                Log.i(TAG, "    " + notification.packageName + " / " + notification.tag)
-            }
-        }
-        Log.i(TAG, "]")
-    }
-
     private fun isNotificationServiceEnabled(): Boolean {
         val pkgName = packageName
         val allNames =
@@ -218,13 +206,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return false
-    }
-
-    private fun launchIntentTest() {
-        val uriString = "https://stackoverflow.com/"
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.data = Uri.parse(uriString)
-        startActivity(intent)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

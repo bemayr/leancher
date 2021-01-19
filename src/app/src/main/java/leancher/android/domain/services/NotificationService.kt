@@ -54,22 +54,6 @@ class NotificationService : NotificationListenerService() {
         fetchCurrentNotifications()
     }
 
-
-    internal inner class CommandFromUIReceiver : BroadcastReceiver() {
-
-        override fun onReceive(context: Context, intent: Intent) {
-            if (intent.getStringExtra(COMMAND_KEY) == CLEAR_NOTIFICATIONS)
-                // remove notifications
-                cancelAllNotifications()
-            else if (intent.getStringExtra(COMMAND_KEY) == GET_ACTIVE_NOTIFICATIONS)
-                // read notifications
-                fetchCurrentNotifications()
-            else if (intent.getStringExtra(COMMAND_KEY) == DISMISS_NOTIFICATION)
-                // dismiss notification
-                dismissNotification(intent = intent)
-        }
-    }
-
     private fun dismissNotification(intent: Intent) {
         if(intent.getIntExtra(RESULT_KEY, AppCompatActivity.RESULT_CANCELED) == Activity.RESULT_OK) {
             val resultValue = intent.getStringExtra(RESULT_VALUE)
@@ -95,12 +79,26 @@ class NotificationService : NotificationListenerService() {
         sendResultOnUI(gson.toJson(notifications))
     }
 
-
     private fun sendResultOnUI(result: String?) {
         val resultIntent = Intent(UPDATE_UI_ACTION)
         resultIntent.putExtra(RESULT_KEY, Activity.RESULT_OK)
         resultIntent.putExtra(RESULT_VALUE, result)
         LocalBroadcastManager.getInstance(this).sendBroadcast(resultIntent)
+    }
+
+    internal inner class CommandFromUIReceiver : BroadcastReceiver() {
+
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.getStringExtra(COMMAND_KEY) == CLEAR_NOTIFICATIONS) {
+                cancelAllNotifications()
+            }
+            else if (intent.getStringExtra(COMMAND_KEY) == GET_ACTIVE_NOTIFICATIONS) {
+                fetchCurrentNotifications()
+            }
+            else if (intent.getStringExtra(COMMAND_KEY) == DISMISS_NOTIFICATION) {
+                dismissNotification(intent = intent)
+            }
+        }
     }
 
     companion object {
