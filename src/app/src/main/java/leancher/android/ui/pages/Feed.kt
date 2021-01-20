@@ -4,6 +4,10 @@ import android.appwidget.AppWidgetHost
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -11,12 +15,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.platform.ContextAmbient
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import leancher.android.MainActivity
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.ActionButton
 import leancher.android.ui.components.ActionDialog
+import leancher.android.ui.components.IconButton
 import leancher.android.ui.components.TitleCard
 import leancher.android.viewmodels.FeedViewModel
 
@@ -27,18 +33,18 @@ fun Feed(feedViewModel: FeedViewModel) {
 
     val feedTitleModel = PageTitle(
         context.getString(R.string.page_widget_feed),
-        "Your widget feed",
-        R.drawable.cool
+        "How's your day",
+        R.drawable.home
     )
 
     Row {
-        TitleCard(pageTitle = feedTitleModel) {
-            ActionButton(
-                text = "Add Widget",
-                action = {
+        Column(Modifier.padding(10.dp)) {
+            TitleCard(pageTitle = feedTitleModel) {
+                IconButton(icon = Icons.Filled.Add, action = {
                     val activity: MainActivity = context as MainActivity
                     activity.selectWidget()
-                })
+                }, "Add")
+            }
         }
     }
 

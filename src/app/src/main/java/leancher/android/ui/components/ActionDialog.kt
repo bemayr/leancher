@@ -3,6 +3,7 @@ package leancher.android.ui.components
 import androidx.compose.foundation.Text
 import androidx.compose.material.AlertDialog
 import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -18,15 +19,15 @@ fun ActionDialog(
         if(dismissAction != null && dismissText != null) {
             AlertDialog(
                     onDismissRequest = {},
-                    title = { Text(text = title) },
-                    text = { Text(text = text) },
+                    title = { Text(text = title, style = MaterialTheme.typography.h1) },
+                    text = { Text(text = text, style = MaterialTheme.typography.body1) },
                     confirmButton = {
                         Button(
                                 onClick = {
                                     confirmAction()
                                     setShowDialog(false)
                                 },
-                        ) { Text(confirmText) }
+                        ) { Text(confirmText, style = MaterialTheme.typography.body1) }
                     },
                     dismissButton = {
                         Button(
@@ -35,7 +36,7 @@ fun ActionDialog(
                                     setShowDialog(false)
                                 },
                         ) {
-                            Text(dismissText)
+                            Text(dismissText, style = MaterialTheme.typography.body1)
                         }
                     }
             )
@@ -49,7 +50,7 @@ fun ActionDialog(
                             confirmAction()
                             setShowDialog(false)
                         },
-                        ) { Text(confirmText) }
+                        ) { Text(confirmText, style = MaterialTheme.typography.body1) }
                     }
             )
         }

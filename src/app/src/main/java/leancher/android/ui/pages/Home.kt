@@ -25,11 +25,16 @@ import leancher.android.viewmodels.HomeViewModel
 fun Home(homeViewModel: HomeViewModel) {
     val context = AmbientContext.current
 
-    val homeTitleModel = PageTitle(context.getString(R.string.page_home), "A human centered launcher experience", R.drawable.cool)
+    val homeTitleModel = PageTitle(context.getString(R.string.page_home), "A human centered launcher", R.drawable.leancher)
 
     Row {
-        Column(Modifier.padding(20.dp)) {
+        Column(Modifier.padding(10.dp)) {
             TitleCard(pageTitle = homeTitleModel, null)
+        }
+    }
+
+    Row {
+        Column(Modifier.padding(10.dp)) {
             Text("TODO:", style = MaterialTheme.typography.body1)
             Text("I wanna ... ", style = MaterialTheme.typography.body1)
             Text("... start an <app>", style = MaterialTheme.typography.body1)

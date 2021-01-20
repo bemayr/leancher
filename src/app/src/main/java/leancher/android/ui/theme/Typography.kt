@@ -11,21 +11,28 @@ import androidx.compose.ui.unit.sp
 import leancher.android.R
 
 // Example: define custom fonts
-// val Rubik = fontFamily(
-//        font(R.font.rubik_regular),
-//        font(R.font.rubik_medium, FontWeight.W500),
-//        font(R.font.rubik_bold, FontWeight.Bold)
-// )
+ val SegoeUI = fontFamily(
+        font(R.font.segoeui),
+        font(R.font.segoeuil, FontWeight.Light),
+        font(R.font.seguisb, FontWeight.Bold)
+ )
 
 val LeancherTypography = Typography (
         h1 = TextStyle(
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.W300,
-                fontSize = 25.sp
+                fontFamily = SegoeUI,
+                fontWeight = FontWeight.Bold,
+                fontSize = 24.sp,
+                color = White
+        ),
+        subtitle1 = TextStyle(
+            fontFamily = SegoeUI,
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp,
+            color = White
         ),
         body1 = TextStyle(
-                fontFamily = FontFamily.SansSerif,
-                fontWeight = FontWeight.W600,
-                fontSize = 15.sp
+                fontFamily = SegoeUI,
+                fontSize = 15.sp,
+                color = White
         )
 )
