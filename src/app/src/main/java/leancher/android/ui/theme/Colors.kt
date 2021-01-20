@@ -11,6 +11,7 @@ private val Blue200 = Color(0xff91a4fc)
 val White = Color.White
 val Gray = Color.Gray
 
+// TODO: cool dark theme
 val DarkColors = darkColors(
         primary = Color(rgb(0,99,177)),
         onPrimary = Color.Blue,
