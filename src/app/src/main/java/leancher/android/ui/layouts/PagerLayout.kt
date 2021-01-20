@@ -15,10 +15,7 @@ import leancher.android.ui.components.Paginator
 import leancher.android.ui.pages.Feed
 import leancher.android.ui.pages.Home
 import leancher.android.ui.pages.NotificationCenter
-import leancher.android.viewmodels.FeedViewModel
-import leancher.android.viewmodels.HomeViewModel
 import leancher.android.viewmodels.MainActivityViewModel
-import leancher.android.viewmodels.NotificationCenterViewModel
 
 @Composable
 fun PagerLayout(mainActivityViewModel: MainActivityViewModel) {

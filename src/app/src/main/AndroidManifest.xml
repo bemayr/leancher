@@ -9,6 +9,14 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" tools:ignore="QueryAllPackagesPermission" /> <!-- https://developer.android.com/training/basics/intents/package-visibility#all-apps -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
+    <!-- Allow query all packages for opening notifications via package name -->
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
+
+    <!-- Allow query a single package, e.g. the dialer (in packageManager.getLaunchIntentForPackage(<name>) -->
+    <!--    <queries>-->
+    <!--        <package android:name="com.android.dialer" />-->
+    <!--    </queries>-->
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

@@ -23,7 +23,8 @@ import leancher.android.viewmodels.FeedViewModel
 
 @Composable
 fun Feed(feedViewModel: FeedViewModel) {
-    val context = ContextAmbient.current
+    val context = AmbientContext.current
+
     val feedTitleModel = PageTitle(
         context.getString(R.string.page_widget_feed),
         "Your widget feed",
