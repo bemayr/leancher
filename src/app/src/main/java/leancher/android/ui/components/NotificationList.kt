@@ -17,6 +17,7 @@ import leancher.android.MainActivity
 import leancher.android.R
 import leancher.android.domain.models.Notification
 import leancher.android.ui.theme.White
+import leancher.android.ui.util.TranslateString
 
 @Composable
 @Deprecated("Use SwipeActionList")
@@ -26,13 +27,13 @@ fun NotificationList(notifications: List<Notification>) {
 
     ScrollableColumn(Modifier.fillMaxHeight()) {
         if(notifications.isEmpty()) {
-            Text(text = "No active notifications!")
+            Text(text = TranslateString(id = R.string.no_notifications))
         } else {
             notifications.forEach { notification ->
                 if (notifications.indexOf(notification) == 0) {
                     Text(
                         modifier = Modifier.padding(15.dp),
-                        text = "All notifications",
+                        text = TranslateString(id = R.string.all_notifications),
                         style = MaterialTheme.typography.h1
                     )
                 }
@@ -54,7 +55,10 @@ fun NotificationList(notifications: List<Notification>) {
                                 Text(text = notification.text, style = MaterialTheme.typography.body1)
                             }
                         }
-                        Column(Modifier.padding(horizontal = 10.dp).fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                        Column(
+                            Modifier
+                                .padding(horizontal = 10.dp)
+                                .fillMaxWidth(), horizontalAlignment = Alignment.End) {
                             IconButton(icon = Icons.Filled.Delete, action = {
                                 activity.dismissNotification(notification)
                             })

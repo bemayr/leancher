@@ -35,7 +35,6 @@ import java.lang.reflect.Type
 
 
 class MainActivity : AppCompatActivity() {
-    private val TAG = "MainActivity"
     private val ACTION_NOTIFICATION_LISTENER_SETTINGS =
         "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
 

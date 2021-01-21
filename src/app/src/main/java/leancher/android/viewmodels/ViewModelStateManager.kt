@@ -9,8 +9,8 @@ class ViewModelStateManager {
     private val PREFERENCES_FILE_NAME = "com.Leancher"
     private val PREFERENCES_KEY = "mainActivityViewModel"
 
-    private lateinit var context: Context
-    private lateinit var sharedPreferences: SharedPreferences
+    private val context: Context
+    private val sharedPreferences: SharedPreferences
 
     constructor(context: Context) {
         this.context = context

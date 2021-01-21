@@ -24,6 +24,7 @@ import leancher.android.ui.components.ActionButton
 import leancher.android.ui.components.ActionDialog
 import leancher.android.ui.components.IconButton
 import leancher.android.ui.components.TitleCard
+import leancher.android.ui.util.TranslateString
 import leancher.android.viewmodels.FeedViewModel
 
 
@@ -33,7 +34,7 @@ fun Feed(feedViewModel: FeedViewModel) {
 
     val feedTitleModel = PageTitle(
         context.getString(R.string.page_widget_feed),
-        "How's your day",
+        context.getString(R.string.hows_your_day),
         R.drawable.home
     )
 
@@ -43,7 +44,7 @@ fun Feed(feedViewModel: FeedViewModel) {
                 IconButton(icon = Icons.Filled.Add, action = {
                     val activity: MainActivity = context as MainActivity
                     activity.selectWidget()
-                }, "Add")
+                }, context.getString(R.string.add))
             }
         }
     }
@@ -66,18 +67,20 @@ fun WidgetHostView(feedViewModel: FeedViewModel) {
     ScrollableColumn() {
         feedViewModel.widgets.forEach { w ->
             ActionDialog(
-                "Remove Widget?", "Are you sure? Widget will be removed ...",
-                showDialog, setShowDialog,
-                { activity.removeWidget(w) }, "Yes",
-                { }, "No"
+                title = context.getString(R.string.remove_widget_title), text = context.getString(R.string.remove_widget_text),
+                showDialog = showDialog, setShowDialog = setShowDialog,
+                confirmAction = { activity.removeWidget(w) },
+                dismissAction = { },
             )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.fillMaxWidth().clickable(
-                    onClick = { },
-                    onLongClick = {
-                        setShowDialog(true)
-                    }), horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(Modifier
+                    .fillMaxWidth()
+                    .clickable(
+                        onClick = { },
+                        onLongClick = {
+                            setShowDialog(true)
+                        }), horizontalAlignment = Alignment.CenterHorizontally) {
                     AndroidView(
                         viewBlock = { ctx ->
                             appWidgetHost.createView(context, w.id, w.providerInfo).apply {

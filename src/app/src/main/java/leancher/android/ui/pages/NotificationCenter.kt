@@ -16,6 +16,7 @@ import leancher.android.domain.models.Notification
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.*
 import leancher.android.ui.components.itemtemplates.NotificationItemTemplate
+import leancher.android.ui.util.TranslateString
 import leancher.android.viewmodels.NotificationCenterViewModel
 
 
@@ -26,7 +27,7 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
 
     val notificationTitleModel = PageTitle(
         context.getString(leancher.android.R.string.page_notification_center),
-        "Manage your notifications here",
+        context.getString(R.string.manage_notifications_here),
         R.drawable.notification
     )
 
@@ -40,7 +41,7 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
         ActionSwitch(
             onAction = { activity.showOrHideStatusBar() },
             offAction = { activity.showOrHideStatusBar(false) },
-            text = "Hide Notifications"
+            text = context.getString(R.string.hide_notifications)
         )
         Spacer(
             modifier = Modifier
@@ -51,7 +52,7 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
             IconButton(icon = Icons.Filled.Delete, action = {
                 activity.clearNotifications()
-            }, "Clear all")
+            }, context.getString(R.string.clear_all))
         }
     }
 
