@@ -18,7 +18,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.AmbientContext
 
 @Composable
-fun Home(vm: HomeViewModel) = {
+fun Home(vm: HomeViewModel) {
     val context = AmbientContext.current
 
     val homeTitleModel = PageTitle(
