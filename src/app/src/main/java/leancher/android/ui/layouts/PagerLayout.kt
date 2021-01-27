@@ -21,7 +21,7 @@ import leancher.android.viewmodels.MainActivityViewModel
 import leancher.android.viewmodels.NotificationCenterViewModel
 
 @Composable
-fun PagerLayout(mainActivityViewModel: MainActivityViewModel) {
+fun PagerLayout(vm: MainActivityViewModel) {
     val clock = AmbientAnimationClock.current
     val pagerState = remember(clock) { PagerState(clock, 1, 0, 2) }
     val currentPage = pagerState.currentPage
@@ -38,10 +38,10 @@ fun PagerLayout(mainActivityViewModel: MainActivityViewModel) {
                     .padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Column() {
                     when(page) {
-                        0 -> Feed(feedViewModel = mainActivityViewModel.feedViewModel)
-                        1 -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
-                        2 -> NotificationCenter(notificationCenterViewModel = mainActivityViewModel.notificationCenterViewModel)
-                        else -> Home(homeViewModel = mainActivityViewModel.homeViewModel)
+                        0 -> Feed(vm.feedViewModel)
+                        1 -> Home(vm.homeViewModel)
+                        2 -> NotificationCenter(vm.notificationCenterViewModel)
+                        else -> TODO("this should no happen")
                     }
                 }
             }

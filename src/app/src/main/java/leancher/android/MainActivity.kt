@@ -1,25 +1,24 @@
 package leancher.android
 
 import android.Manifest
-import android.content.ComponentName
 import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
+import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.content.pm.ResolveInfo
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.setContent
 import leancher.android.domain.services.NotificationService
-import leancher.android.ui.layouts.PagerLayout
+import leancher.android.ui.pages.Home
 import leancher.android.ui.theme.LeancherTheme
 import leancher.android.viewmodels.*
-
 
 class MainActivity : AppCompatActivity() {
     private val TAG = "MainActivity"
@@ -57,20 +56,31 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val homeModel = HomeModel(this::startActivity, ScopedStateStore("home"))
+
+    private val homeViewModel by viewModels<HomeViewModel> { ViewModelFactory(HomeViewModel::class.java) { HomeViewModel(homeModel) }}
+//    private val homeViewModel by viewModels<HomeViewModel>()
+
     private fun initializeViewState() {
-        val viewState = viewModelStateManager.restoreViewState()
-        if (viewState != null) {
-            mainActivityViewModel = viewState
-        } else {
+//        val viewState = viewModelStateManager.restoreViewState()
+
+//        if (viewState != null) {
+//            mainActivityViewModel = viewState
+//        } else {
             mainActivityViewModel = MainActivityViewModel(
-                homeViewModel = HomeViewModel(),
+                homeViewModel = homeViewModel,
                 feedViewModel = FeedViewModel(
                     widgets = mutableListOf()
                 ),
                 notificationCenterViewModel = NotificationCenterViewModel()
             )
-        }
+//            Log.i("TEST", "Step: " + mainActivityViewModel.homeViewModel.stepIndex)
+//        }
     }
+
+    private fun isIntentCallable(intent: Intent) =
+        packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).isNotEmpty() // TODO: check whether this flag is needed
+
 
     override fun onStart() {
         super.onStart()
@@ -96,7 +106,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        appWidgetHost.stopListening()
+        //appWidgetHost.stopListening()
     }
 
     private fun requestLeancherPermissions() {
@@ -200,27 +210,20 @@ class MainActivity : AppCompatActivity() {
     fun Leancher() {
         LeancherTheme(
             content = {
-                PagerLayout(mainActivityViewModel = mainActivityViewModel)
+                Home(vm = homeViewModel)
+//                PagerLayout(vm = mainActivityViewModel)
             }
         )
     }
+}
 
-    private fun testIntentStuff() {
-        fun isIntentCallable(intent: Intent): Boolean =
-            packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY) // TODO: check whether this flag is needed
-                .isNotEmpty()
+class ScopedStateStore(val scope: String) : IScopedStateStore {
+    override fun <TState> saveState(state: TState, key: String) {
+        TODO("Not yet implemented")
+    }
 
-        val testIntent = Intent("test")
-        val sendIntent = Intent("send")
-        val callIntent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:5551234"))
-        val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse("https://www.android.com"))
-
-        Log.i("INTENTS", "test ?= ${isIntentCallable(testIntent)}")
-        Log.i("INTENTS", "send ?= ${isIntentCallable(sendIntent)}")
-        Log.i("INTENTS", "call ?= ${isIntentCallable(callIntent)}")
-        Log.i("INTENTS", "web ?= ${isIntentCallable(webIntent)}")
-
-        startActivity(Intent.createChooser(sendIntent, "Chose some app..."))
+    override fun <TState> loadState(key: String): TState {
+        TODO("Not yet implemented")
     }
 }
 
