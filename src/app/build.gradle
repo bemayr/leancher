@@ -63,6 +63,8 @@ dependencies {
 //    implementation "androidx.lifecycle:lifecycle-livedata-ktx:2.2.0"
 
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    implementation 'androidx.ui:ui-tooling:1.0.0-alpha07'
+    implementation 'androidx.localbroadcastmanager:localbroadcastmanager:1.0.0'
 //    implementation 'androidx.ui:ui-tooling:1.0.0-alpha07'
 //    testImplementation 'junit:junit:4.+'
 //    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
@@ -88,7 +90,7 @@ dependencies {
     implementation "androidx.compose.material:material-icons-core:$compose_version"
     implementation "androidx.compose.material:material-icons-extended:$compose_version"
     implementation "androidx.compose.animation:animation:$compose_version"
-//    implementation "androidx.compose.runtime:runtime:$compose_version"
+    implementation "androidx.compose.runtime:runtime:$compose_version"
     implementation "androidx.compose.runtime:runtime-livedata:$compose_version"
 
 //    // UI Tests

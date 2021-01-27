@@ -1,31 +1,35 @@
 package leancher.android.ui.pages
 
-import android.app.NotificationManager
-import android.content.Context
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ContextAmbient
+import androidx.compose.ui.platform.AmbientContext
 import androidx.compose.ui.unit.dp
+import leancher.android.MainActivity
 import leancher.android.R
+import leancher.android.domain.models.Notification
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.*
+import leancher.android.ui.components.itemtemplates.NotificationItemTemplate
+import leancher.android.ui.util.TranslateString
 import leancher.android.viewmodels.NotificationCenterViewModel
+
 
 @Composable
 fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel) {
-    val context = ContextAmbient.current
+    val context = AmbientContext.current
+    val activity: MainActivity = context as MainActivity
 
     val notificationTitleModel = PageTitle(
-            context.getString(leancher.android.R.string.page_notification_center),
-            "Manage your notifications here",
-            R.drawable.notification)
-
-    val fakeNotifications = listOf<String>("1", "2", "3", "4", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5")
+        context.getString(leancher.android.R.string.page_notification_center),
+        context.getString(R.string.manage_notifications_here),
+        R.drawable.notification
+    )
 
     Row {
         Column(Modifier.padding(10.dp)) {
@@ -33,48 +37,38 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
         }
     }
 
-    Row {
-        Column(Modifier.padding(10.dp)) {
-            ActionSwitch(
-                    onAction = { println(" ============= ON ============= ") },
-                    offAction = { println(" ============= OFF ============= ") },
-                    text = "Enable / Disable Notifications")
+    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+        ActionSwitch(
+            onAction = { activity.showOrHideStatusBar() },
+            offAction = { activity.showOrHideStatusBar(false) },
+            text = context.getString(R.string.hide_notifications)
+        )
+        Spacer(
+            modifier = Modifier
+                .padding(horizontal = 20.dp)
+                .background(color = MaterialTheme.colors.secondary)
+                .defaultMinSizeConstraints(minHeight = 30.dp, minWidth = 2.dp)
+        )
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+            IconButton(icon = Icons.Filled.Delete, action = {
+                activity.clearNotifications()
+            }, context.getString(R.string.clear_all))
         }
     }
 
     Row {
-        ActionDialogDemo()
+        SwipeActionList(
+            innerPadding = PaddingValues(),
+            items = if(notificationCenterViewModel.notifications == null) listOf<Notification>() else notificationCenterViewModel.notifications.toList(),
+            itemTemplate = { notification -> NotificationItemTemplate(notification) },
+            onSwipe = { notification -> activity.dismissNotification(notification) },
+            onClick = { notification ->
+                val launchIntent = context.getPackageManager()?.getLaunchIntentForPackage(notification.packageName)
+                if(launchIntent != null) {
+                    context.startActivity(launchIntent)
+                }
+            },
+            Modifier.fillMaxWidth()
+        )
     }
-
-    Row {
-        IconButton(icon = Icons.Filled.Delete, action = { println(" ==== DELETE ====") }, "Delete all")
-    }
-    
-    Row {
-       NotificationList(notifications = fakeNotifications)
-    }
-
-    // ActionButton(text = "Print Notification", action = {
-        // val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        // val myNotificationService: NotificationService? = context.getSystemService(NotificationService::class.java)
-        // val notifications = NotificationService().getActiveNotifications()
-    // }
-
-    ActionButton(text = "Print Notification", action = {
-        
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notifications = notificationManager.activeNotifications
-
-        println("notifications length ${notifications?.size}")
-        notifications?.forEach { n -> println(n.notification) }
-    })
-}
-
-fun hideStatusBar() {
-    // Hide the status bar.
-    // window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-
-    // Remember that you should never show the action bar if the
-    // status bar is hidden, so hide that too if necessary.
-    // actionBar?.hide()
 }

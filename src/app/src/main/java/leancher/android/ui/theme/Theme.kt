@@ -13,7 +13,9 @@ fun LeancherTheme(
         darkTheme: Boolean = isSystemInDarkTheme()
 ) {
     MaterialTheme(
-            colors = if (darkTheme) DarkColors else LightColors,
+            colors = LightColors,
+            // TODO: change colors to (when implemented dark theme)
+            // colors = if (darkTheme) DarkColors else LightColors,
             typography = LeancherTypography,
             content = content
     )

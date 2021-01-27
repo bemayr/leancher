@@ -7,22 +7,40 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
+import leancher.android.R
+import leancher.android.domain.models.PageTitle
+import leancher.android.ui.components.TitleCard
+import leancher.android.ui.util.TranslateString
 import leancher.android.domain.intents.LeancherIntent
 import leancher.android.domain.intents.*
 import leancher.android.viewmodels.HomeViewModel
 import androidx.compose.runtime.livedata.observeAsState
-
-val intents = listOf<LeancherIntent>(alarm, timer, nap)
+import androidx.compose.ui.platform.AmbientContext
 
 @Composable
-fun Home(vm: HomeViewModel) =
-    Column(Modifier.padding(8.dp)) {
+fun Home(vm: HomeViewModel) = {
+    val context = AmbientContext.current
+
+    val homeTitleModel = PageTitle(
+        context.getString(R.string.page_home),
+        context.getString(R.string.launcher_experience),
+        R.drawable.leancher
+    )
+
+    Row {
+        Column(Modifier.padding(10.dp)) {
+            TitleCard(pageTitle = homeTitleModel, null)
+        }
+    }
+
+    Column(Modifier.padding(10.dp)) {
         Text(text = vm.greeting)
         Text(text = "Step Index: ${vm.stepIndex}")
         IWanna()
         Blocks(vm.blocks)
         NextBlock(vm.nextBlockOptions, vm::blockSelected)
     }
+}
 
 
 @Composable
