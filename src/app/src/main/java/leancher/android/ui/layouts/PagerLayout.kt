@@ -1,5 +1,8 @@
 package leancher.android.ui.layouts
 
+import android.widget.LinearLayout
+import androidx.compose.foundation.ScrollableColumn
+import androidx.compose.foundation.ScrollableRow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
@@ -31,26 +34,28 @@ fun PagerLayout(vm: MainActivityViewModel) {
         remember(clock) { PagerState(clock, 1, 0, 2) }
     }
 
-    Row(modifier = Modifier.background(MaterialTheme.colors.background)) {
-        Pager(state = pagerState) {
-            Row(Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Column() {
-                    when(page) {
-                        0 -> Feed(vm.feedViewModel)
-                        1 -> Home(vm.homeViewModel)
-                        2 -> NotificationCenter(vm.notificationCenterViewModel)
-                        else -> TODO("this should no happen")
-                    }
+    Pager(state = pagerState) {
+        Row(
+            Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colors.background)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Column() {
+                when (page) {
+                    0 -> Feed(vm.feedViewModel)
+                    1 -> Home(vm.homeViewModel)
+                    2 -> NotificationCenter(vm.notificationCenterViewModel)
+                    else -> TODO("this should no happen")
                 }
             }
         }
-        Row(Modifier
-                .fillMaxSize(), verticalAlignment = Alignment.Bottom) {
-            Column() {
-                Paginator(pageAmount = 3, currentPage = currentPage)
-            }
+    }
+    Row(
+        Modifier.fillMaxSize(), verticalAlignment = Alignment.Bottom
+    ) {
+        Column() {
+            Paginator(pageAmount = 3, currentPage = currentPage)
         }
     }
 }
