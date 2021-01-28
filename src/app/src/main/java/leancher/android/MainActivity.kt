@@ -1,133 +1,237 @@
 package leancher.android
 
+import android.Manifest
+import android.app.NotificationManager
 import android.appwidget.AppWidgetHost
-import android.appwidget.AppWidgetHostView
 import android.appwidget.AppWidgetManager
+import android.content.*
+import android.content.ComponentName
 import android.content.Intent
-import android.net.Uri
+import android.content.SharedPreferences
+import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.ViewGroup
+import android.provider.Settings
+import android.view.View
+import android.view.WindowManager
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.AmbientAnimationClock
 import androidx.compose.ui.platform.setContent
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import leancher.android.ui.components.Pager
-import leancher.android.ui.components.PagerState
-import leancher.android.ui.components.Paginator
-import leancher.android.ui.core.FeedState
-import leancher.android.ui.core.Widget
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import leancher.android.domain.models.Notification
+import leancher.android.domain.services.NotificationService.Companion.CLEAR_NOTIFICATIONS
+import leancher.android.domain.services.NotificationService.Companion.COMMAND_KEY
+import leancher.android.domain.services.NotificationService.Companion.DISMISS_NOTIFICATION
+import leancher.android.domain.services.NotificationService.Companion.GET_ACTIVE_NOTIFICATIONS
+import leancher.android.domain.services.NotificationService.Companion.READ_COMMAND_ACTION
+import leancher.android.domain.services.NotificationService.Companion.RESULT_KEY
+import leancher.android.domain.services.NotificationService.Companion.RESULT_VALUE
+import leancher.android.domain.services.NotificationService.Companion.UPDATE_UI_ACTION
+import leancher.android.ui.layouts.Pager
 import leancher.android.ui.pages.Feed
 import leancher.android.ui.pages.Home
 import leancher.android.ui.pages.NotificationCenter
-
+import leancher.android.ui.theme.LeancherTheme
+import leancher.android.viewmodels.*
+import java.lang.reflect.Type
 
 class MainActivity : AppCompatActivity() {
+    private val ACTION_NOTIFICATION_LISTENER_SETTINGS =
+        "android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS"
 
     private val APPWIDGET_HOST_ID = 1024
     private val REQUEST_CREATE_APPWIDGET = 5
     private val REQUEST_PICK_APPWIDGET = 9
 
-    private var feedState: FeedState = FeedState(selectWidgetFun = { selectWidget() })
-
     private lateinit var appWidgetManager: AppWidgetManager
     private lateinit var appWidgetHost: AppWidgetHost
 
-    private lateinit var mainlayout: ViewGroup
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var editor: SharedPreferences.Editor
+
+    private lateinit var viewModelStateManager: ViewModelStateManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // set default view with android view layout
-        // setContentView(R.layout.activity_main)
-
-        // set default view with compose => Pager
-        setContent {
-            PagerLayout()
-        }
+        sharedPreferences = getSharedPreferences("com.Leancher", MODE_PRIVATE)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
+        appWidgetHost.startListening()
+
+        requestLeancherPermissions()
+
+        viewModelStateManager = ViewModelStateManager(this)
+
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+
+        setContent {
+            LeancherTheme(
+                content = {
+                    Pager(
+                        pages = listOf(
+                            { Feed(feedVM) },
+                            { Home(homeVM) },
+                            { NotificationCenter(notificationsVM) }
+                        )
+                    )
+                }
+            )
+        }
     }
+
+    private val homeModel = HomeModel(ScopedStateStore("home"))
+
+    private val feedVM by viewModels<FeedViewModel>() {
+        ViewModelFactory(FeedViewModel::class.java) {
+            FeedViewModel(
+                widgets = mutableListOf(),
+                FeedViewModel.Actions(
+                    onSelectWidget = ::selectWidget,
+                    createWidgetHostView = ::createWidgetHostView
+                )
+            )
+        }
+    }
+    private val homeVM by viewModels<HomeViewModel> {
+        ViewModelFactory(HomeViewModel::class.java) {
+            HomeViewModel(
+                model = homeModel,
+                HomeViewModel.Actions(
+                    executeIntent = ::startActivity,
+                    isIntentCallable = ::isIntentCallable
+                )
+            )
+        }
+    }
+    private val notificationsVM by viewModels<NotificationCenterViewModel> {
+        ViewModelFactory(NotificationCenterViewModel::class.java) {
+            NotificationCenterViewModel(
+                NotificationCenterViewModel.Actions(
+                    clearNotifications = ::clearNotifications,
+                    showStatusBar = ::showStatusBar,
+                    hideStatusBar = ::hideStatusBar,
+                    dismissNotification = ::dismissNotification
+                )
+            )
+        }
+    }
+
+    private fun createWidgetHostView(widget: Widget) =
+        appWidgetHost.createView(applicationContext, widget.id, widget.providerInfo)
+
+    private val clientLooperReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+
+            val resultCode = intent.getIntExtra(RESULT_KEY, RESULT_CANCELED)
+            if (resultCode == RESULT_OK) {
+                val resultValue = intent.getStringExtra(RESULT_VALUE)
+                val gson = Gson()
+                val type: Type = object : TypeToken<MutableList<Notification>>() {}.type
+
+                val notifications: List<Notification> = gson.fromJson(resultValue, type) as List<Notification>
+                notificationsVM.notifications = notifications
+//                println("Notifications Count: ${notifications.size}")
+//                notifications.forEach { n -> println("${n.key}, ${n.packageName}, ${n.title}, ${n.text}") }
+            }
+        }
+    }
+
+    private fun isIntentCallable(intent: Intent) =
+        packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).isNotEmpty() // TODO: check whether this flag is needed
+
 
     override fun onStart() {
         super.onStart()
         appWidgetHost.startListening()
     }
 
-    override fun onStop() {
-        super.onStop()
-        appWidgetHost.stopListening()
-    }
+    override fun onResume() {
+        super.onResume()
 
-    @Composable
-    fun PagerLayout() {
-        val clock = AmbientAnimationClock.current
-        val pagerState = remember(clock) { PagerState(clock, 1, 0, 2) }
-        val currentPage = pagerState.currentPage
+        if (sharedPreferences.getBoolean("firstRun", true)) {
+            editor = sharedPreferences.edit()
+            with(editor) {
+                putBoolean("firstRun", false)
+                apply()
+            }
 
-        run {
-            val clock = AmbientAnimationClock.current
-            remember(clock) { PagerState(clock, 1, 0, 2) }
+            requestLeancherPermissions()
         }
 
-        Pager(state = pagerState) {
-            Row(Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 12.dp, vertical = 8.dp)) {
-                Column() {
-                    when(page) {
-                        0 -> Feed(page, feedState)
-                        1 -> Home(page, launchIntent = { launchIntentTest() })
-                        2 -> NotificationCenter(page)
-                        else -> Home(page, launchIntent = { launchIntentTest() })
-                    }
+        //Register to Broadcast for Updating UI
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+            clientLooperReceiver,
+            IntentFilter(UPDATE_UI_ACTION)
+        )
+
+        readNotifications()
+    }
+
+    override fun onPause() {
+        super.onPause()
+//        TODO: viewModelStateManager.persistViewState(mainActivityViewModel)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // TODO: fix bug -> should stop listening on widget changes while app is not in foreground
+        // but call throws null pointer when attempting to read from field ->
+        // 'com.android.server.appwidget.AppWidgetServiceImpl$ProviderId com.android.server.appwidget.AppWidgetServiceImpl$Provider.id'
+        // appWidgetHost.stopListening()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        //Unregister to Broadcast for Updating UI
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(clientLooperReceiver)
+    }
+
+    private fun requestLeancherPermissions() {
+        if (checkSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_NOTIFICATION_POLICY), 1)
+        }
+        if (!isNotificationServiceEnabled()) {
+            startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
+        }
+    }
+
+    private fun readNotifications() =
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply { putExtra(COMMAND_KEY, GET_ACTIVE_NOTIFICATIONS) })
+
+    private fun clearNotifications() =
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply { putExtra(COMMAND_KEY, CLEAR_NOTIFICATIONS) })
+
+    fun dismissNotification(notification: Notification) =
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply {
+            putExtra(COMMAND_KEY, DISMISS_NOTIFICATION)
+            putExtra(RESULT_KEY, RESULT_OK)
+            putExtra(RESULT_VALUE, notification.key)
+        })
+
+    private fun isNotificationServiceEnabled(): Boolean {
+        val allNames = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        if (allNames != null && allNames?.isNotEmpty()) {
+            for (name in allNames.split(":").toTypedArray()) {
+                if (packageName == ComponentName.unflattenFromString(name)!!.packageName) {
+                    return true
                 }
             }
         }
-        Row(Modifier
-                .fillMaxSize(), verticalAlignment = Alignment.Bottom) {
-            Column() {
-                Paginator(pageAmount = 3, currentPage = currentPage)
-            }
-        }
-    }
-
-    @Preview
-    @Composable
-    fun PreviewIntent() {
-        PagerLayout()
-    }
-
-    private fun launchIntentTest() {
-        val uriString = "https://stackoverflow.com/"
-        val intent = Intent(Intent.ACTION_VIEW)
-        intent.data = Uri.parse(uriString)
-        startActivity(intent)
-    }
-
-    fun selectWidget() {
-        val appWidgetId = appWidgetHost.allocateAppWidgetId()
-        val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK)
-        pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-        startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET)
+        return false
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == RESULT_OK) {
-            if (requestCode == REQUEST_PICK_APPWIDGET) {
-                configureWidget(data)
-            } else if (requestCode == REQUEST_CREATE_APPWIDGET) {
-                if (data != null) {
-                    createWidget(data)
-                }
+            when (requestCode) {
+                REQUEST_PICK_APPWIDGET -> configureWidget(data)
+                REQUEST_CREATE_APPWIDGET -> data?.run { createWidget(data) }
             }
         } else if (resultCode == RESULT_CANCELED && data != null) {
             val appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
@@ -135,6 +239,13 @@ class MainActivity : AppCompatActivity() {
                 appWidgetHost.deleteAppWidgetId(appWidgetId)
             }
         }
+    }
+
+    private fun selectWidget() {
+        val appWidgetId = appWidgetHost.allocateAppWidgetId()
+        val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK)
+        pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        startActivityForResult(pickIntent, REQUEST_PICK_APPWIDGET)
     }
 
     private fun configureWidget(data: Intent?) {
@@ -151,20 +262,57 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun createWidget(data: Intent) {
+    private fun createWidget(data: Intent) {
         val extras = data.extras
         val appWidgetId = extras!!.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
         val appWidgetInfo = appWidgetManager.getAppWidgetInfo(appWidgetId)
-        val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
-        hostView.setAppWidget(appWidgetId, appWidgetInfo)
-        feedState.widgets.add(Widget(appWidgetId, appWidgetInfo))
+        // val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
+        // hostView.setAppWidget(appWidgetId, appWidgetInfo)
 
-        // mainlayout.addView(hostView)
+        feedVM.addWidget(Widget(appWidgetId, appWidgetInfo))
     }
 
-    fun removeWidget(hostView: AppWidgetHostView) {
-        appWidgetHost.deleteAppWidgetId(hostView.appWidgetId)
-        mainlayout.removeView(hostView)
+    private fun hideStatusBar() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE
+                // Set the content to appear under the system bars so that the
+                // content doesn't resize when the system bars hide and show.
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                // Hide the nav bar and status bar
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
     }
 
+    private fun showStatusBar() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
+    }
 }
+
+class ScopedStateStore(val scope: String) : IScopedStateStore {
+    override fun <TState> saveState(key: String, state: TState) {
+        println("storing at $key")
+//        TODO("Not yet implemented")
+    }
+
+    override fun <TState> loadState(key: String): TState? {
+        return null
+//        TODO("Not yet implemented")
+    }
+}
+
+/*
+
+String action !including Namespace // https://developer.android.com/reference/android/content/Intent#Intent(java.lang.String)
+Uri data | setDataAndNormalize // https://developer.android.com/reference/android/content/Intent#setData(android.net.Uri)
+String type | setTypeAndNormalize // https://developer.android.com/reference/android/content/Intent#setTypeAndNormalize(java.lang.String)
+
+Boolean showChooser // https://developer.android.com/training/basics/intents/sending#AppChooser
+String? chooserTitle
+
+
+ */

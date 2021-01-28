@@ -10,18 +10,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import androidx.ui.tooling.preview.Preview
+import leancher.android.ui.theme.Gray
 import leancher.android.ui.theme.White
 
 @Composable
 fun PageIndicator(shape: Shape, color: Color) {
     Column(modifier = Modifier
-                        .wrapContentSize(Alignment.Center)
-                        .padding(horizontal = 10.dp)) {
+        .wrapContentSize(Alignment.Center)
+        .padding(horizontal = 10.dp)) {
         Box(
             modifier = Modifier
-                        .preferredSize(10.dp)
-                        .clip(shape)
-                        .background(color)
+                .preferredSize(10.dp)
+                .clip(shape)
+                .background(color)
         )
     }
 }
@@ -32,8 +34,12 @@ fun Paginator(pageAmount: Int, currentPage: Int) {
         horizontalArrangement = Arrangement.Center,
         modifier = Modifier.padding(16.dp).fillMaxWidth()) {
         for(i in 0 until pageAmount) {
-            val color = if(i == currentPage) Color.Red else White()
+            val color = if(i == currentPage) White else Gray
             PageIndicator(shape = CircleShape, color = color)
         }
     }
 }
+
+@Preview
+@Composable
+fun PaginatorPreview() { Paginator(pageAmount = 3, currentPage = 1) }

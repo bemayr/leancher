@@ -1,27 +1,70 @@
 package leancher.android.ui.pages
 
-import android.app.NotificationManager
-import android.content.Context
-import androidx.compose.material.Text
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.ContextAmbient
-import leancher.android.ui.components.ActionButton
-import leancher.android.ui.theme.White
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.AmbientContext
+import androidx.compose.ui.unit.dp
+import leancher.android.MainActivity
+import leancher.android.R
+import leancher.android.domain.models.Notification
+import leancher.android.domain.models.PageTitle
+import leancher.android.ui.components.*
+import leancher.android.ui.components.itemtemplates.NotificationItemTemplate
+import leancher.android.viewmodels.NotificationCenterViewModel
+
 
 @Composable
-fun NotificationCenter(page: Int) {
+fun NotificationCenter(vm: NotificationCenterViewModel) {
+    val context = AmbientContext.current
 
-    val context = ContextAmbient.current
+    val notificationTitleModel = PageTitle(
+        context.getString(leancher.android.R.string.page_notification_center),
+        context.getString(R.string.manage_notifications_here),
+        R.drawable.notification
+    )
 
-    val fakeNotifications = listOf<String>("1", "2", "3", "4", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5", "5")
-    
-    Text(text = "NotificationCenter, Page: $page", color = White())
-    ActionButton(text = "Print Notification", action = {
-        
-        val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        val notifications = notificationManager.activeNotifications
+    Row {
+        Column(Modifier.padding(10.dp)) {
+            TitleCard(pageTitle = notificationTitleModel, null)
+        }
+    }
 
-        println("notifications length ${notifications.size}")
-        notifications.forEach { n -> println(n.notification) }
-    })
+    Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
+//        ActionSwitch(
+//            onAction = { vm.showStatusBar() },
+//            offAction = { vm.hideStatusBar() },
+//            text = context.getString(R.string.hide_notifications)
+//        )
+//        Spacer(
+//            modifier = Modifier
+//                .padding(horizontal = 20.dp)
+//                .background(color = MaterialTheme.colors.secondary)
+//                .defaultMinSizeConstraints(minHeight = 30.dp, minWidth = 2.dp)
+//        )
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+            IconButton(icon = Icons.Filled.Delete, action = vm::clearNotifications, context.getString(R.string.clear_all))
+        }
+    }
+
+    Row {
+        SwipeActionList(
+            innerPadding = PaddingValues(),
+            items = vm.notifications,
+            itemTemplate = { notification -> NotificationItemTemplate(notification) },
+            onSwipe = { notification -> vm.dismissNotification(notification) },
+            onClick = { notification ->
+                val launchIntent = context.packageManager?.getLaunchIntentForPackage(notification.packageName)
+                if(launchIntent != null) {
+                    context.startActivity(launchIntent)
+                }
+            },
+            Modifier.fillMaxWidth()
+        )
+    }
 }
