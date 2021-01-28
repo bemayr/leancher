@@ -43,8 +43,8 @@ class ViewModelFactory<TViewModel : ViewModel?>(
     }
 }
 
-typealias InputRenderer = @Composable (getValue: (String) -> Any?, setValue: (String, Any) -> Unit) -> Unit
-typealias OutputRenderer = @Composable (getValue: (String) -> Any?) -> Unit
+typealias InputRenderer = @Composable (setResult: (Any) -> Unit) -> Unit
+typealias OutputRenderer = @Composable () -> Unit
 
 class HomeViewModel(
     private val model: HomeModel,
@@ -64,19 +64,13 @@ class HomeViewModel(
     var nextBlockOptions: List<LeancherIntent.Block> by mutableStateOf(nextBlockOptions())
         private set
 
-    var greeting: String by mutableStateOf("initial")
+    var isFinished: Boolean by mutableStateOf(false)
         private set
 
-    val inputRenderers: Map<String, @Composable () -> Unit> =
-        inputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get, values::set) } }
-
-    val outputRenderers: Map<String, @Composable () -> Unit> =
-        outputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get) } }
-
-    class Renderers(val input: Map<String, @Composable () -> Unit>, val output: Map<String, @Composable () -> Unit>)
+    class Renderers(val input: Map<String, (Reference) -> (@Composable () -> Unit)>, val output: Map<String, @Composable () -> Unit>)
     val renderers = Renderers (
-        inputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get, values::set) } },
-        outputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get) } }
+        inputRenderers.mapValues { (_, renderFunction) -> { reference -> { renderFunction { value -> values[reference.key] = value } } } },
+        outputRenderers
     )
 
     fun blockSelected(block: LeancherIntent.Block) {
@@ -92,18 +86,23 @@ class HomeViewModel(
         blocks += block
         nextBlockOptions = nextBlockOptions()
 
-        model.store.saveState("greeting", "Hallo")
-
-        greeting = model.store.loadState("greeting") ?: "not found"
+//        model.store.saveState("greeting", "Hallo")
+//
+//        greeting = model.store.loadState("greeting") ?: "not found"
 
         when (nextBlockOptions.size) {
             0 -> {
-                stepIndex = 0
-//                blocks = listOf()
-//                nextBlockOptions = nextBlockOptions()
+                isFinished = true
             }
             1 -> blockSelected(nextBlockOptions[0])
         }
+    }
+
+    fun onStartOver() {
+        stepIndex = 0
+        blocks = listOf()
+        nextBlockOptions = nextBlockOptions()
+        isFinished = false
     }
 
     private fun nextBlockOptions() = intents.filter { intent -> intent.matches(blocks.ids()) }.blocksFor(stepIndex)

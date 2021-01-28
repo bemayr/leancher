@@ -10,16 +10,11 @@ import android.content.pm.LauncherActivityInfo
 import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.os.UserManager
+import android.os.Process
 import android.provider.Settings
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.View
-import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.material.Button
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -90,7 +85,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        test()
+        throw Exception("typically, a nice video is better than a crappy demo")
     }
 
     private val homeModel = HomeModel(ScopedStateStore("home"))
@@ -111,7 +106,7 @@ class MainActivity : AppCompatActivity() {
             HomeViewModel(
                 model = homeModel,
                 inputRenderers = mapOf(
-                    "AppList" to { getValue, setValue -> ApplicationList(getValue, setValue) } // TODO: convert to reference, once possible
+                    "AppList" to { setResult -> ApplicationList(setResult) } // TODO: convert to reference, once possible
                 ),
                 outputRenderers = mapOf(),
                 HomeViewModel.Actions(
@@ -157,7 +152,7 @@ class MainActivity : AppCompatActivity() {
     private fun isIntentCallable(intent: Intent) =
         packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).isNotEmpty() // TODO: check whether this flag is needed
 
-    private fun test(): List<LauncherActivityInfo> {
+    private fun test(){
 //        val editText = EditText(applicationContext)
 //        editText.focusable = View.FOCUSABLE
 //
@@ -173,17 +168,18 @@ class MainActivity : AppCompatActivity() {
 //        val inputMethodManager: InputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
 //        inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
 
+
+    }
+
+    private fun getApplicationsList(): List<LauncherActivityInfo> {
         val launcherApps = getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
-        val userManager = getSystemService(Context.USER_SERVICE) as UserManager
-        val infos = launcherApps.getActivityList(null, android.os.Process.myUserHandle())
-        infos.forEach { info -> println("${info.label}, ${info.name}, ${info.applicationInfo}") }
-        return infos
+        return launcherApps.getActivityList(null, Process.myUserHandle())
     }
 
     @Composable
-    fun ApplicationList(getValue: (String) -> Any?, setValue: (String, Any) -> Unit) {
-        for (info in test()) {
-            Text(text = info.label as String, style = MaterialTheme.typography.subtitle1)
+    fun ApplicationList(setResult: (Any) -> Unit) {
+        for (info in getApplicationsList()) {
+            Text(text = info.label as String, style = MaterialTheme.typography.body1)
         }
     }
 

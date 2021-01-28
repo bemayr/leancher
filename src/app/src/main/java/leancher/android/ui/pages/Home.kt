@@ -1,5 +1,6 @@
 package leancher.android.ui.pages
 
+import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
@@ -35,21 +36,26 @@ fun Home(vm: HomeViewModel) {
     }
 
     Column(Modifier.padding(10.dp)) {
-        Text(text = vm.greeting)
-        Text(text = "Step Index: ${vm.stepIndex}")
+//        Text(text = vm.greeting)
+//        Text(text = "Step Index: ${vm.stepIndex}")
         IWanna()
-        Blocks(vm.blocks, vm.renderers)
-        NextBlock(vm.nextBlockOptions, vm::blockSelected, vm.renderers)
+        ScrollableColumn() {
+            Blocks(vm.blocks, vm.renderers)
+            NextBlock(vm.nextBlockOptions, vm::blockSelected, vm.renderers)
+            if(vm.isFinished) Button(onClick = vm::onStartOver) {
+                Text(text = "Start Over")
+            }
+        }
     }
 }
 
 
 @Composable
-fun IWanna() = Text("i wanna …", style = MaterialTheme.typography.body1)
+fun IWanna() = Text("i wanna …", style = MaterialTheme.typography.subtitle1)
 
 @Composable
 fun Blocks(blocks: List<LeancherIntent.Block>, renderers: HomeViewModel.Renderers) =
-    Column { blocks.forEach { Block(it, renderers) } }
+    Column(modifier = Modifier.padding(vertical = 5.dp)) { blocks.forEach { Block(it, renderers) } }
 
 @Composable
 fun NextBlock(
@@ -57,23 +63,23 @@ fun NextBlock(
     blockSelected: (LeancherIntent.Block) -> Unit,
     renderers: HomeViewModel.Renderers
 ) {
-    val textState = remember { mutableStateOf(TextFieldValue()) }
-    TextField(
-        value = textState.value,
-        onValueChange = { textState.value = it }
-    )
-    Text("Searching for: " + textState.value.text)
+//    val textState = remember { mutableStateOf(TextFieldValue()) }
+//    TextField(
+//        value = textState.value,
+//        onValueChange = { textState.value = it }
+//    )
+//    Text("Searching for: " + textState.value.text)
     nextBlockOptions.forEach { block ->
-        Card(Modifier.clickable(onClick = { blockSelected(block) })) { Block(block, renderers) }
+        Card(Modifier.clickable(onClick = { blockSelected(block) }).padding(vertical = 5.dp)) { Block(block, renderers) }
     }
 }
 
 @Composable
 fun Block(block: LeancherIntent.Block, renderers: HomeViewModel.Renderers) = when(block) {
-    is LeancherIntent.Block.Text -> Text(text = block.content)
-    is LeancherIntent.Block.Action.Getter.InputGetter -> (renderers.input[block.reference.key] ?: { Text("no renderer for ${block.reference.key} specified") }).invoke()
+    is LeancherIntent.Block.Text -> Text(text = block.content, style = MaterialTheme.typography.subtitle1)
+    is LeancherIntent.Block.Action.Getter.InputGetter -> (renderers.input[block.renderer.id]?.invoke(block.reference) ?: { Text("no renderer for ${block.renderer} specified") }).invoke()
     is LeancherIntent.Block.Action.Getter.IntentGetter -> TODO("render result")
     is LeancherIntent.Block.Action.Setter.ReferenceSetter -> { }
     is LeancherIntent.Block.Action.Setter.IntentDefinitionSetter -> { }
-    is LeancherIntent.Block.Message -> Text(text = block.content)
+    is LeancherIntent.Block.Message -> Text(text = block.content, style = MaterialTheme.typography.subtitle1)
 }

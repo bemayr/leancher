@@ -38,7 +38,7 @@ val nap = LeancherIntent(
             )
         )
     ),
-    Message("wet dreams")
+    Message("sleep well...")
 )
 
 val intents = listOf(app, alarm, timer, nap)
