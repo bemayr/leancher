@@ -16,14 +16,12 @@ import leancher.android.domain.models.Notification
 import leancher.android.domain.models.PageTitle
 import leancher.android.ui.components.*
 import leancher.android.ui.components.itemtemplates.NotificationItemTemplate
-import leancher.android.ui.util.TranslateString
 import leancher.android.viewmodels.NotificationCenterViewModel
 
 
 @Composable
-fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel) {
+fun NotificationCenter(vm: NotificationCenterViewModel) {
     val context = AmbientContext.current
-    val activity: MainActivity = context as MainActivity
 
     val notificationTitleModel = PageTitle(
         context.getString(leancher.android.R.string.page_notification_center),
@@ -38,32 +36,30 @@ fun NotificationCenter(notificationCenterViewModel: NotificationCenterViewModel)
     }
 
     Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        ActionSwitch(
-            onAction = { activity.showOrHideStatusBar() },
-            offAction = { activity.showOrHideStatusBar(false) },
-            text = context.getString(R.string.hide_notifications)
-        )
-        Spacer(
-            modifier = Modifier
-                .padding(horizontal = 20.dp)
-                .background(color = MaterialTheme.colors.secondary)
-                .defaultMinSizeConstraints(minHeight = 30.dp, minWidth = 2.dp)
-        )
+//        ActionSwitch(
+//            onAction = { vm.showStatusBar() },
+//            offAction = { vm.hideStatusBar() },
+//            text = context.getString(R.string.hide_notifications)
+//        )
+//        Spacer(
+//            modifier = Modifier
+//                .padding(horizontal = 20.dp)
+//                .background(color = MaterialTheme.colors.secondary)
+//                .defaultMinSizeConstraints(minHeight = 30.dp, minWidth = 2.dp)
+//        )
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
-            IconButton(icon = Icons.Filled.Delete, action = {
-                activity.clearNotifications()
-            }, context.getString(R.string.clear_all))
+            IconButton(icon = Icons.Filled.Delete, action = vm::clearNotifications, context.getString(R.string.clear_all))
         }
     }
 
     Row {
         SwipeActionList(
             innerPadding = PaddingValues(),
-            items = if(notificationCenterViewModel.notifications == null) listOf<Notification>() else notificationCenterViewModel.notifications.toList(),
+            items = vm.notifications,
             itemTemplate = { notification -> NotificationItemTemplate(notification) },
-            onSwipe = { notification -> activity.dismissNotification(notification) },
+            onSwipe = { notification -> vm.dismissNotification(notification) },
             onClick = { notification ->
-                val launchIntent = context.getPackageManager()?.getLaunchIntentForPackage(notification.packageName)
+                val launchIntent = context.packageManager?.getLaunchIntentForPackage(notification.packageName)
                 if(launchIntent != null) {
                     context.startActivity(launchIntent)
                 }

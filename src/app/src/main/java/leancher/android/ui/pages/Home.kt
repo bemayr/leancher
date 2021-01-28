@@ -15,6 +15,7 @@ import leancher.android.domain.intents.LeancherIntent
 import leancher.android.domain.intents.*
 import leancher.android.viewmodels.HomeViewModel
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.savedinstancestate.savedInstanceState
 import androidx.compose.ui.platform.AmbientContext
 
 @Composable
@@ -26,6 +27,9 @@ fun Home(vm: HomeViewModel) {
         context.getString(R.string.launcher_experience),
         R.drawable.leancher
     )
+
+    // TODO
+    var textValue by savedInstanceState { "1234567812345678" }
 
     Row {
         Column(Modifier.padding(10.dp)) {

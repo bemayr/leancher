@@ -1,35 +1,30 @@
 package leancher.android.ui.pages
 
-import android.appwidget.AppWidgetHost
+import android.appwidget.AppWidgetHostView
 import androidx.compose.foundation.ScrollableColumn
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Widgets
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.AmbientContext
-import androidx.compose.ui.platform.ContextAmbient
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import leancher.android.MainActivity
 import leancher.android.R
 import leancher.android.domain.models.PageTitle
-import leancher.android.ui.components.ActionButton
 import leancher.android.ui.components.ActionDialog
 import leancher.android.ui.components.IconButton
 import leancher.android.ui.components.TitleCard
-import leancher.android.ui.util.TranslateString
 import leancher.android.viewmodels.FeedViewModel
+import leancher.android.viewmodels.Widget
 
 
 @Composable
-fun Feed(feedViewModel: FeedViewModel) {
+fun Feed(vm: FeedViewModel) {
     val context = AmbientContext.current
 
     val feedTitleModel = PageTitle(
@@ -41,22 +36,31 @@ fun Feed(feedViewModel: FeedViewModel) {
     Row {
         Column(Modifier.padding(10.dp)) {
             TitleCard(pageTitle = feedTitleModel) {
-                IconButton(icon = Icons.Filled.Add, action = {
-                    val activity: MainActivity = context as MainActivity
-                    activity.selectWidget()
-                }, context.getString(R.string.add))
+                IconButton(
+                    icon = Icons.Filled.Add,
+                    action = vm.actions.onSelectWidget,
+                    text = context.getString(R.string.add)
+                )
             }
         }
     }
 
-    Row { WidgetHostView(feedViewModel = feedViewModel) }
+    Row {
+        WidgetHostView(
+            widgets = vm.widgets,
+            onRemoveWidget = vm::removeWidget,
+            createWidgetHostView = vm.actions.createWidgetHostView
+        )
+    }
 }
 
 @Composable
-fun WidgetHostView(feedViewModel: FeedViewModel) {
+fun WidgetHostView(
+    widgets: List<Widget>,
+    onRemoveWidget: (widget: Widget) -> Unit,
+    createWidgetHostView: (widget: Widget) -> AppWidgetHostView
+) {
     val context = AmbientContext.current
-    val activity: MainActivity = context as MainActivity
-    val appWidgetHost = activity.getAppWidgetHost()
 
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     // https://developer.android.google.cn/reference/kotlin/androidx/compose/foundation/package-summary
@@ -64,12 +68,12 @@ fun WidgetHostView(feedViewModel: FeedViewModel) {
     // TODO: get dialog out of forEach loop (find suitable workaround for callback (with parameter)
     // TODO: bugfix every time when a widget is deleted, the last one in the list is not rendered any more - why?
 
-    ScrollableColumn() {
-        feedViewModel.widgets.forEach { w ->
+    ScrollableColumn {
+        widgets.forEach { widget ->
             ActionDialog(
                 title = context.getString(R.string.remove_widget_title), text = context.getString(R.string.remove_widget_text),
                 showDialog = showDialog, setShowDialog = setShowDialog,
-                confirmAction = { activity.removeWidget(w) },
+                confirmAction = { onRemoveWidget(widget) },
                 dismissAction = { },
             )
 
@@ -82,8 +86,8 @@ fun WidgetHostView(feedViewModel: FeedViewModel) {
                             setShowDialog(true)
                         }), horizontalAlignment = Alignment.CenterHorizontally) {
                     AndroidView(
-                        viewBlock = { ctx ->
-                            appWidgetHost.createView(context, w.id, w.providerInfo).apply {
+                        viewBlock = {
+                            createWidgetHostView(widget).apply {
                                 // layoutParams = LinearLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT)
                                 setOnLongClickListener {
                                     setShowDialog(true)

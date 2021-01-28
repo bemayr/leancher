@@ -1,15 +1,11 @@
 package leancher.android.viewmodels
 
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.net.Uri
 import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.Transformations.map
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import leancher.android.domain.intents.BlockId
@@ -27,22 +23,12 @@ fun List<LeancherIntent.Block>.ids(): List<BlockId> =
     map(LeancherIntent.Block::id)
 
 class HomeModel(
-    val executeIntent: (intent: Intent) -> Unit,
     val store: IScopedStateStore
 ) {}
 
 interface IScopedStateStore {
-    fun <TState>saveState (state: TState, key: String): Unit
-    fun <TState>loadState (key: String): TState
-}
-
-class HomeViewModelFactory(private val homeModel: HomeModel) : ViewModelProvider.Factory {
-    override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-        return when {
-            modelClass.isAssignableFrom(HomeViewModel::class.java) -> HomeViewModel(homeModel) as T
-            else -> throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
+    fun <TState>saveState (key: String, state: TState): Unit
+    fun <TState>loadState (key: String): TState?
 }
 
 class ViewModelFactory<TViewModel : ViewModel?>(
@@ -56,12 +42,9 @@ class ViewModelFactory<TViewModel : ViewModel?>(
     }
 }
 
-class HomeViewModel(private val model: HomeModel) : ViewModel() {
-//class HomeViewModel(application: Application) : AndroidViewModel(application) {
-//    private fun executeIntent(intent: Intent) = getApplication<Application>().startActivity(intent)
+class HomeViewModel(private val model: HomeModel, private val actions: Actions) : ViewModel() {
 
     private val intents = leancher.android.domain.intents.intents
-
 
     var stepIndex by mutableStateOf(0)
         private set
@@ -79,8 +62,8 @@ class HomeViewModel(private val model: HomeModel) : ViewModel() {
         when(block) {
             is LeancherIntent.Block.Action.Getter.InputGetter -> Log.i("HOMEVIEWMODEL", "Input Getter")
             is LeancherIntent.Block.Action.Getter.IntentGetter -> Log.i("HOMEVIEWMODEL", "Intent Getter")
-            is LeancherIntent.Block.Action.Setter.ReferenceSetter -> model.executeIntent(values[block.reference.key] as Intent)
-            is LeancherIntent.Block.Action.Setter.IntentDefinitionSetter -> model.executeIntent(createIntent(block.definition))
+            is LeancherIntent.Block.Action.Setter.ReferenceSetter -> actions.executeIntent(values[block.reference.key] as Intent)
+            is LeancherIntent.Block.Action.Setter.IntentDefinitionSetter -> actions.executeIntent(createIntent(block.definition))
             else -> { /* no side effect has to be executed */ }
         }
 
@@ -88,9 +71,9 @@ class HomeViewModel(private val model: HomeModel) : ViewModel() {
         blocks += block
         nextBlockOptions = nextBlockOptions()
 
-        model.store.saveState("Hallo", "greeting")
+        model.store.saveState("greeting", "Hallo")
 
-        greeting = model.store.loadState("greeting")
+        greeting = model.store.loadState("greeting") ?: "not found"
 
         when (nextBlockOptions.size) {
             0 -> {
@@ -120,4 +103,9 @@ class HomeViewModel(private val model: HomeModel) : ViewModel() {
 
         definition.extras?.forEach { definition -> putExtra(definition.id, resolveValue<Serializable>(values, definition.value)) }
     }
+
+    data class Actions(
+        val executeIntent: (Intent) -> Unit,
+        val isIntentCallable: (Intent) -> Boolean
+    )
 }

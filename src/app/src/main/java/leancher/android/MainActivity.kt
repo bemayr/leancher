@@ -9,20 +9,17 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
+import android.view.View
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.setContent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import leancher.android.domain.models.Notification
-import leancher.android.domain.services.NotificationService
 import leancher.android.domain.services.NotificationService.Companion.CLEAR_NOTIFICATIONS
 import leancher.android.domain.services.NotificationService.Companion.COMMAND_KEY
 import leancher.android.domain.services.NotificationService.Companion.DISMISS_NOTIFICATION
@@ -31,8 +28,10 @@ import leancher.android.domain.services.NotificationService.Companion.READ_COMMA
 import leancher.android.domain.services.NotificationService.Companion.RESULT_KEY
 import leancher.android.domain.services.NotificationService.Companion.RESULT_VALUE
 import leancher.android.domain.services.NotificationService.Companion.UPDATE_UI_ACTION
-import leancher.android.ui.layouts.PagerLayout
+import leancher.android.ui.layouts.Pager
+import leancher.android.ui.pages.Feed
 import leancher.android.ui.pages.Home
+import leancher.android.ui.pages.NotificationCenter
 import leancher.android.ui.theme.LeancherTheme
 import leancher.android.viewmodels.*
 import java.lang.reflect.Type
@@ -52,12 +51,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var editor: SharedPreferences.Editor
 
     private lateinit var viewModelStateManager: ViewModelStateManager
-    private lateinit var mainActivityViewModel: MainActivityViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        sharedPreferences = getSharedPreferences("com.Leancher", MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("com.Leancher", MODE_PRIVATE)
 
         appWidgetManager = AppWidgetManager.getInstance(this)
         appWidgetHost = AppWidgetHost(this, APPWIDGET_HOST_ID)
@@ -66,30 +64,64 @@ class MainActivity : AppCompatActivity() {
         requestLeancherPermissions()
 
         viewModelStateManager = ViewModelStateManager(this)
-        initializeViewState()
 
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-//        notificationManager.notificationPolicy = NotificationManager.Policy(
-//            NotificationManager.Policy.PRIORITY_CATEGORY_CALLS,
-//            NotificationManager.Policy.CONVERSATION_SENDERS_ANYONE,
-//            NotificationManager.Policy.PRIORITY_SENDERS_ANY
-//        )
 
-        // set default view with compose => Pager
         setContent {
-            Leancher()
+            LeancherTheme(
+                content = {
+                    Pager(
+                        pages = listOf(
+                            { Feed(feedVM) },
+                            { Home(homeVM) },
+                            { NotificationCenter(notificationsVM) }
+                        )
+                    )
+                }
+            )
         }
     }
 
-    private val homeModel = HomeModel(this::startActivity, ScopedStateStore("home"))
+    private val homeModel = HomeModel(ScopedStateStore("home"))
 
-    private val homeViewModel by viewModels<HomeViewModel> { ViewModelFactory(HomeViewModel::class.java) { HomeViewModel(homeModel) }}
-//    private val homeViewModel by viewModels<HomeViewModel>()
-
-    fun getAppWidgetHost(): AppWidgetHost {
-        return appWidgetHost
+    private val feedVM by viewModels<FeedViewModel>() {
+        ViewModelFactory(FeedViewModel::class.java) {
+            FeedViewModel(
+                widgets = mutableListOf(),
+                FeedViewModel.Actions(
+                    onSelectWidget = ::selectWidget,
+                    createWidgetHostView = ::createWidgetHostView
+                )
+            )
+        }
     }
+    private val homeVM by viewModels<HomeViewModel> {
+        ViewModelFactory(HomeViewModel::class.java) {
+            HomeViewModel(
+                model = homeModel,
+                HomeViewModel.Actions(
+                    executeIntent = ::startActivity,
+                    isIntentCallable = ::isIntentCallable
+                )
+            )
+        }
+    }
+    private val notificationsVM by viewModels<NotificationCenterViewModel> {
+        ViewModelFactory(NotificationCenterViewModel::class.java) {
+            NotificationCenterViewModel(
+                NotificationCenterViewModel.Actions(
+                    clearNotifications = ::clearNotifications,
+                    showStatusBar = ::showStatusBar,
+                    hideStatusBar = ::hideStatusBar,
+                    dismissNotification = ::dismissNotification
+                )
+            )
+        }
+    }
+
+    private fun createWidgetHostView(widget: Widget) =
+        appWidgetHost.createView(applicationContext, widget.id, widget.providerInfo)
 
     private val clientLooperReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -100,33 +132,12 @@ class MainActivity : AppCompatActivity() {
                 val gson = Gson()
                 val type: Type = object : TypeToken<MutableList<Notification>>() {}.type
 
-                val notifications: List<Notification> =
-                    gson.fromJson(resultValue, type) as List<Notification>
-                mainActivityViewModel.notificationCenterViewModel.notifications = mutableListOf()
-                notifications.forEach { notification ->
-                    mainActivityViewModel.notificationCenterViewModel.notifications!!.add(
-                        notification
-                    )
-                }
+                val notifications: List<Notification> = gson.fromJson(resultValue, type) as List<Notification>
+                notificationsVM.notifications = notifications
+//                println("Notifications Count: ${notifications.size}")
+//                notifications.forEach { n -> println("${n.key}, ${n.packageName}, ${n.title}, ${n.text}") }
             }
         }
-    }
-
-    private fun initializeViewState() {
-//        val viewState: MainActivityViewModel? = viewModelStateManager.restoreViewState()
-//        if (viewState != null) {
-//            mainActivityViewModel = viewState
-//            mainActivityViewModel.notificationCenterViewModel.notifications = mutableListOf()
-//        } else {
-            mainActivityViewModel = MainActivityViewModel(
-                homeViewModel = homeViewModel,
-                feedViewModel = FeedViewModel(
-                    widgets = mutableListOf()
-                ),
-                notificationCenterViewModel = NotificationCenterViewModel(
-                    notifications = mutableListOf()
-                )
-            )
     }
 
     private fun isIntentCallable(intent: Intent) =
@@ -142,9 +153,11 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
 
         if (sharedPreferences.getBoolean("firstRun", true)) {
-            editor = sharedPreferences.edit();
-            editor.putBoolean("firstRun", false)
-            editor.commit();
+            editor = sharedPreferences.edit()
+            with(editor) {
+                putBoolean("firstRun", false)
+                apply()
+            }
 
             requestLeancherPermissions()
         }
@@ -160,7 +173,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        viewModelStateManager.persistViewState(mainActivityViewModel)
+//        TODO: viewModelStateManager.persistViewState(mainActivityViewModel)
     }
 
     override fun onStop() {
@@ -180,38 +193,29 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestLeancherPermissions() {
         if (checkSelfPermission(Manifest.permission.ACCESS_NOTIFICATION_POLICY) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_NOTIFICATION_POLICY), 1);
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_NOTIFICATION_POLICY), 1)
         }
         if (!isNotificationServiceEnabled()) {
             startActivity(Intent(ACTION_NOTIFICATION_LISTENER_SETTINGS))
         }
     }
 
-    fun readNotifications() {
-        val i = Intent(READ_COMMAND_ACTION)
-        i.putExtra(COMMAND_KEY, GET_ACTIVE_NOTIFICATIONS)
-        sendBroadcast(i)
-    }
+    private fun readNotifications() =
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply { putExtra(COMMAND_KEY, GET_ACTIVE_NOTIFICATIONS) })
 
-    fun clearNotifications() {
-        val i = Intent(READ_COMMAND_ACTION)
-        i.putExtra(COMMAND_KEY, CLEAR_NOTIFICATIONS)
-        sendBroadcast(i)
-    }
+    private fun clearNotifications() =
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply { putExtra(COMMAND_KEY, CLEAR_NOTIFICATIONS) })
 
-    fun dismissNotification(notification: Notification) {
-        val i = Intent(READ_COMMAND_ACTION)
-        i.putExtra(COMMAND_KEY, DISMISS_NOTIFICATION)
-        i.putExtra(RESULT_KEY, RESULT_OK)
-        i.putExtra(RESULT_VALUE, notification.key)
-        sendBroadcast(i)
-    }
+    fun dismissNotification(notification: Notification) =
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply {
+            putExtra(COMMAND_KEY, DISMISS_NOTIFICATION)
+            putExtra(RESULT_KEY, RESULT_OK)
+            putExtra(RESULT_VALUE, notification.key)
+        })
 
     private fun isNotificationServiceEnabled(): Boolean {
-        val pkgName = packageName
-        val allNames =
-            Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
-        if (allNames != null && !allNames.isEmpty()) {
+        val allNames = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        if (allNames != null && allNames?.isNotEmpty()) {
             for (name in allNames.split(":").toTypedArray()) {
                 if (packageName == ComponentName.unflattenFromString(name)!!.packageName) {
                     return true
@@ -225,12 +229,9 @@ class MainActivity : AppCompatActivity() {
         super.onActivityResult(requestCode, resultCode, data)
 
         if (resultCode == RESULT_OK) {
-            if (requestCode == REQUEST_PICK_APPWIDGET) {
-                configureWidget(data)
-            } else if (requestCode == REQUEST_CREATE_APPWIDGET) {
-                if (data != null) {
-                    createWidget(data)
-                }
+            when (requestCode) {
+                REQUEST_PICK_APPWIDGET -> configureWidget(data)
+                REQUEST_CREATE_APPWIDGET -> data?.run { createWidget(data) }
             }
         } else if (resultCode == RESULT_CANCELED && data != null) {
             val appWidgetId = data.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, -1)
@@ -240,7 +241,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun selectWidget() {
+    private fun selectWidget() {
         val appWidgetId = appWidgetHost.allocateAppWidgetId()
         val pickIntent = Intent(AppWidgetManager.ACTION_APPWIDGET_PICK)
         pickIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -268,49 +269,39 @@ class MainActivity : AppCompatActivity() {
         // val hostView = appWidgetHost.createView(this, appWidgetId, appWidgetInfo)
         // hostView.setAppWidget(appWidgetId, appWidgetInfo)
 
-        mainActivityViewModel.feedViewModel.widgets.add(Widget(appWidgetId, appWidgetInfo))
+        feedVM.addWidget(Widget(appWidgetId, appWidgetInfo))
     }
 
-    fun removeWidget(widget: Widget) {
-        mainActivityViewModel.feedViewModel.widgets.removeIf {
-                w -> w.id == widget.id
-        }
+    private fun hideStatusBar() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_IMMERSIVE
+                // Set the content to appear under the system bars so that the
+                // content doesn't resize when the system bars hide and show.
+                or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                // Hide the nav bar and status bar
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_FULLSCREEN)
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
     }
 
-    fun showOrHideStatusBar(show: Boolean = true) {
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-         // Show / Hide the status bar.
-        if(show == true) {
-            window?.addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
-        } else {
-            window?.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
-            notificationManager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-        }
-
-         // Remember that you should never show the action bar if the
-         // status bar is hidden, so hide that too if necessary.
-         // actionBar?.hide()
-    }
-
-    @Composable
-    fun Leancher() {
-        LeancherTheme(
-            content = {
-                Home(vm = homeViewModel)
-//                PagerLayout(vm = mainActivityViewModel)
-            }
-        )
+    private fun showStatusBar() {
+        window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
     }
 }
 
 class ScopedStateStore(val scope: String) : IScopedStateStore {
-    override fun <TState> saveState(state: TState, key: String) {
-        TODO("Not yet implemented")
+    override fun <TState> saveState(key: String, state: TState) {
+        println("storing at $key")
+//        TODO("Not yet implemented")
     }
 
-    override fun <TState> loadState(key: String): TState {
-        TODO("Not yet implemented")
+    override fun <TState> loadState(key: String): TState? {
+        return null
+//        TODO("Not yet implemented")
     }
 }
 
