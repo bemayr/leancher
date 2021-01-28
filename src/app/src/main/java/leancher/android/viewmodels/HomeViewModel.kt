@@ -3,6 +3,7 @@ package leancher.android.viewmodels
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -42,7 +43,15 @@ class ViewModelFactory<TViewModel : ViewModel?>(
     }
 }
 
-class HomeViewModel(private val model: HomeModel, private val actions: Actions) : ViewModel() {
+typealias InputRenderer = @Composable (getValue: (String) -> Any?, setValue: (String, Any) -> Unit) -> Unit
+typealias OutputRenderer = @Composable (getValue: (String) -> Any?) -> Unit
+
+class HomeViewModel(
+    private val model: HomeModel,
+    inputRenderers: Map<String, InputRenderer>,
+    outputRenderers: Map<String, OutputRenderer>,
+    private val actions: Actions
+) : ViewModel() {
 
     private val intents = leancher.android.domain.intents.intents
 
@@ -57,6 +66,18 @@ class HomeViewModel(private val model: HomeModel, private val actions: Actions) 
 
     var greeting: String by mutableStateOf("initial")
         private set
+
+    val inputRenderers: Map<String, @Composable () -> Unit> =
+        inputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get, values::set) } }
+
+    val outputRenderers: Map<String, @Composable () -> Unit> =
+        outputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get) } }
+
+    class Renderers(val input: Map<String, @Composable () -> Unit>, val output: Map<String, @Composable () -> Unit>)
+    val renderers = Renderers (
+        inputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get, values::set) } },
+        outputRenderers.mapValues { (_, renderFunction) -> { renderFunction(values::get) } }
+    )
 
     fun blockSelected(block: LeancherIntent.Block) {
         when(block) {
@@ -78,8 +99,8 @@ class HomeViewModel(private val model: HomeModel, private val actions: Actions) 
         when (nextBlockOptions.size) {
             0 -> {
                 stepIndex = 0
-                blocks = listOf()
-                nextBlockOptions = nextBlockOptions()
+//                blocks = listOf()
+//                nextBlockOptions = nextBlockOptions()
             }
             1 -> blockSelected(nextBlockOptions[0])
         }
@@ -87,7 +108,7 @@ class HomeViewModel(private val model: HomeModel, private val actions: Actions) 
 
     private fun nextBlockOptions() = intents.filter { intent -> intent.matches(blocks.ids()) }.blocksFor(stepIndex)
 
-    private val values: Map<String, Any> = mapOf()
+    private val values: MutableMap<String, Any> = mutableMapOf()
 
     private fun <T>resolveValue(registry: Map<String, Any>, value: Value): T? =
         when(value) {

@@ -6,15 +6,23 @@ import android.appwidget.AppWidgetHost
 import android.appwidget.AppWidgetManager
 import android.content.*
 import android.content.ComponentName
-import android.content.Intent
-import android.content.SharedPreferences
+import android.content.pm.LauncherActivityInfo
+import android.content.pm.LauncherApps
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.UserManager
 import android.provider.Settings
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
-import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.setContent
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.google.gson.Gson
@@ -81,6 +89,8 @@ class MainActivity : AppCompatActivity() {
                 }
             )
         }
+
+        test()
     }
 
     private val homeModel = HomeModel(ScopedStateStore("home"))
@@ -100,6 +110,10 @@ class MainActivity : AppCompatActivity() {
         ViewModelFactory(HomeViewModel::class.java) {
             HomeViewModel(
                 model = homeModel,
+                inputRenderers = mapOf(
+                    "AppList" to { getValue, setValue -> ApplicationList(getValue, setValue) } // TODO: convert to reference, once possible
+                ),
+                outputRenderers = mapOf(),
                 HomeViewModel.Actions(
                     executeIntent = ::startActivity,
                     isIntentCallable = ::isIntentCallable
@@ -143,6 +157,35 @@ class MainActivity : AppCompatActivity() {
     private fun isIntentCallable(intent: Intent) =
         packageManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY).isNotEmpty() // TODO: check whether this flag is needed
 
+    private fun test(): List<LauncherActivityInfo> {
+//        val editText = EditText(applicationContext)
+//        editText.focusable = View.FOCUSABLE
+//
+//        editText.addTextChangedListener(object : TextWatcher {
+//            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+//            override fun afterTextChanged(s: Editable?) {}
+//
+//            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+//                println(editText.text)
+//            }
+//        })
+//
+//        val inputMethodManager: InputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+//        inputMethodManager.showSoftInput(editText, InputMethodManager.SHOW_IMPLICIT)
+
+        val launcherApps = getSystemService(Context.LAUNCHER_APPS_SERVICE) as LauncherApps
+        val userManager = getSystemService(Context.USER_SERVICE) as UserManager
+        val infos = launcherApps.getActivityList(null, android.os.Process.myUserHandle())
+        infos.forEach { info -> println("${info.label}, ${info.name}, ${info.applicationInfo}") }
+        return infos
+    }
+
+    @Composable
+    fun ApplicationList(getValue: (String) -> Any?, setValue: (String, Any) -> Unit) {
+        for (info in test()) {
+            Text(text = info.label as String, style = MaterialTheme.typography.subtitle1)
+        }
+    }
 
     override fun onStart() {
         super.onStart()
@@ -201,10 +244,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun readNotifications() =
-        sendBroadcast(Intent(READ_COMMAND_ACTION).apply { putExtra(COMMAND_KEY, GET_ACTIVE_NOTIFICATIONS) })
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply {
+            putExtra(
+                COMMAND_KEY,
+                GET_ACTIVE_NOTIFICATIONS
+            )
+        })
 
     private fun clearNotifications() =
-        sendBroadcast(Intent(READ_COMMAND_ACTION).apply { putExtra(COMMAND_KEY, CLEAR_NOTIFICATIONS) })
+        sendBroadcast(Intent(READ_COMMAND_ACTION).apply {
+            putExtra(
+                COMMAND_KEY,
+                CLEAR_NOTIFICATIONS
+            )
+        })
 
     fun dismissNotification(notification: Notification) =
         sendBroadcast(Intent(READ_COMMAND_ACTION).apply {
@@ -282,14 +335,18 @@ class MainActivity : AppCompatActivity() {
                 // Hide the nav bar and status bar
                 or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_FULLSCREEN)
-        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(
+            NotificationManager.INTERRUPTION_FILTER_ALL
+        )
     }
 
     private fun showStatusBar() {
         window.decorView.systemUiVisibility = (View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
-        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_NONE)
+        (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).setInterruptionFilter(
+            NotificationManager.INTERRUPTION_FILTER_NONE
+        )
     }
 }
 
