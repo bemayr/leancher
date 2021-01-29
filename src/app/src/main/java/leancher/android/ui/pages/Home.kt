@@ -81,7 +81,7 @@ fun Block(block: LeancherIntent.Block, renderers: HomeViewModel.Renderers) = whe
     is LeancherIntent.Block.Text -> Text(text = block.content, style = MaterialTheme.typography.subtitle1)
     is LeancherIntent.Block.Action.Getter.InputGetter -> (renderers.input[block.renderer.id]?.invoke(block.reference) ?: { Text("no renderer for ${block.renderer} specified") }).invoke()
     is LeancherIntent.Block.Action.Getter.IntentGetter -> (renderers.output[block.renderer.id] ?: {Text("no renderer for ${block.renderer} specified")}).invoke()
-    is LeancherIntent.Block.Message -> Text(text = block.content, style = MaterialTheme.typography.subtitle1)
+    is LeancherIntent.Block.Message -> Snackbar(text = { Text(text = block.content) })
     else -> { }
 }
 
